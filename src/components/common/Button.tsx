@@ -7,11 +7,16 @@ interface Inputs {
   onClick?: (event: React.MouseEvent | undefined) => void;
 }
 
-const Button = ({ children, classes = "", disabled, onClick }: Inputs) => {
+const Button = ({
+  children,
+  classes = "btn-outline-primary",
+  disabled,
+  onClick,
+}: Inputs) => {
   return (
     <button
       type="button"
-      className={"btn btn-outline-primary text-nowrap " + classes}
+      className={"btn text-nowrap " + classes}
       onClick={onClick}
       disabled={disabled}
     >
