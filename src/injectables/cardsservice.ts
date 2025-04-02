@@ -46,12 +46,14 @@ export class CardsService {
 
   static async create(
     name: string,
+    img: File,
     onUploadProgress?: (progressEvent: any) => void
   ) {
-    await axios.post(
-      `${Configure.url}cards/`,
-      { name: name },
-      { onUploadProgress: onUploadProgress }
-    );
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("img", img);
+    await axios.post(`${Configure.url}cards/`, formData, {
+      onUploadProgress: onUploadProgress,
+    });
   }
 }

@@ -1,5 +1,4 @@
 import { Button } from "@mui/material";
-import axios from "axios";
 import { ChangeEvent, useState } from "react";
 import { CardsService } from "../../injectables/cardsservice";
 
@@ -27,12 +26,16 @@ const FileUploader = () => {
     setStatus(Status.Uploading);
     try {
       setUploadProgress(0);
-      await CardsService.create(file.name, (progressEvent) => {
-        const progressPercent = progressEvent.total
-          ? Math.round((100 * progressEvent.loaded) / progressEvent.total)
-          : 0;
-        setUploadProgress(progressPercent);
-      });
+      await CardsService.create(
+        file.name /* TODO: user-defined card title */,
+        file,
+        (progressEvent) => {
+          const progressPercent = progressEvent.total
+            ? Math.round((100 * progressEvent.loaded) / progressEvent.total)
+            : 0;
+          setUploadProgress(progressPercent);
+        }
+      );
 
       setStatus(Status.Success);
       setUploadProgress(100);
