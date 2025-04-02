@@ -9,13 +9,3 @@ body {
 #root {
   height: 100%;
 }
-
-header {
-  width: 100%;
-  display: flex;
-  justify-content: end;
-}
-
-.router {
-  height: 100%;
-}

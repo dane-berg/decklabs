@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardsService } from "../injectables/cardsservice";
 import CardElement from "./common/CardElement";
+import { I18n } from "../injectables/i18n";
 
 enum State {
   Idle = "idle",
@@ -24,7 +25,7 @@ const Shelf = () => {
 
   return (
     <>
-      {state === State.Loading && <p>loading ...</p>}
+      {state === State.Loading && <p>{I18n.get("loading-string")}</p>}
       {state === State.Success &&
         cards.map((card: Card) => (
           <CardElement
@@ -32,9 +33,7 @@ const Shelf = () => {
             key={card.id}
           />
         ))}
-      {state === State.Error && (
-        <p>There was an error retrieving the cards library.</p>
-      )}
+      {state === State.Error && <p>{I18n.get("library-error")}</p>}
     </>
   );
 };

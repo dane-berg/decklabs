@@ -1,6 +1,7 @@
 import { Button } from "@mui/material";
 import { ChangeEvent, useState } from "react";
 import { CardsService } from "../../injectables/cardsservice";
+import { I18n } from "../../injectables/i18n";
 
 enum State {
   Idle = "idle",
@@ -70,10 +71,8 @@ const FileUploader = () => {
           {state === State.Uploading && <p>{uploadProgress}% uploaded</p>}
         </>
       )}
-      {state === State.Success && <p>File uploaded successfully!</p>}
-      {state === State.Error && (
-        <p>There was an error while uploading the file.</p>
-      )}
+      {state === State.Success && <p>{I18n.get("file-upload-success")}</p>}
+      {state === State.Error && <p>{I18n.get("file-upload-error")}</p>}
     </div>
   );
 };

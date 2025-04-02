@@ -12,6 +12,7 @@ import { useState } from "react";
 import StudioPage from "./components/StudioPage";
 import AboutPage from "./components/AboutPage";
 import LibraryPage from "./components/LibraryPage";
+import { I18n } from "./injectables/i18n";
 
 declare module "@mui/styles/defaultTheme" {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -35,19 +36,45 @@ const useStyles = makeStyles((theme) => {
 function App() {
   const classes = useStyles();
   const [page, setPage] = useState<Page>(Page.Library);
+  const tabs = [
+    { name: I18n.get("tab-library"), value: Page.Library },
+    { name: I18n.get("tab-studio"), value: Page.Studio },
+    { name: I18n.get("tab-about"), value: Page.About },
+  ];
 
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
-        <header>
-          <FormGroup>
+        <header
+          style={{
+            width: "100%",
+            display: "flex",
+            "justify-content": "space-between",
+          }}
+        >
+          {tabs.map((tab) => (
+            <a
+              style={{
+                backgroundColor:
+                  page === tab.value ? "lightblue" : "transparent",
+                cursor: "pointer",
+              }}
+              onClick={() => setPage(tab.value)}
+            >
+              {tab.name}
+            </a>
+          ))}
+          <FormGroup style={{ "justify-self": "end" }}>
             <FormControlLabel
               control={<Switch defaultChecked />}
-              label="Dark mode"
+              label={I18n.get("dark-mode-string")}
             />
           </FormGroup>
         </header>
-        <div className="router">
+        <div
+          className="router"
+          style={{ height: "100%" }}
+        >
           {page === Page.About && <AboutPage />}
           {page === Page.Library && <LibraryPage />}
           {page === Page.Login && <LoginPage />}
