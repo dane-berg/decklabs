@@ -2,7 +2,7 @@ import { Button } from "@mui/material";
 import { ChangeEvent, useState } from "react";
 import { CardsService } from "../../injectables/cardsservice";
 
-enum Status {
+enum State {
   Idle = "idle",
   Uploading = "uploading",
   Success = "success",
@@ -11,19 +11,20 @@ enum Status {
 
 const FileUploader = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [status, setStatus] = useState<Status>(Status.Idle);
+  const [state, setState] = useState<State>(State.Idle);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.files) {
       console.log(e.target.files);
       setFile(e.target.files[0]);
+      setState(State.Idle);
     }
   }
 
   async function handleFileUpload() {
     if (!file) return;
-    setStatus(Status.Uploading);
+    setState(State.Uploading);
     try {
       setUploadProgress(0);
       await CardsService.create(
@@ -37,10 +38,10 @@ const FileUploader = () => {
         }
       );
 
-      setStatus(Status.Success);
+      setState(State.Success);
       setUploadProgress(100);
     } catch {
-      setStatus(Status.Error);
+      setState(State.Error);
     }
     setUploadProgress(0);
   }
@@ -62,15 +63,15 @@ const FileUploader = () => {
         <>
           <Button
             onClick={handleFileUpload}
-            loading={status === Status.Uploading}
+            loading={state === State.Uploading}
           >
             Upload
           </Button>
-          {status === Status.Uploading && <p>{uploadProgress}% uploaded</p>}
+          {state === State.Uploading && <p>{uploadProgress}% uploaded</p>}
         </>
       )}
-      {status === Status.Success && <p>File uploaded successfully!</p>}
-      {status === Status.Error && (
+      {state === State.Success && <p>File uploaded successfully!</p>}
+      {state === State.Error && (
         <p>There was an error while uploading the file.</p>
       )}
     </div>

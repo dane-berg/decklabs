@@ -1,4 +1,3 @@
-import React from "react";
 import { Card } from "../../injectables/cardsservice";
 
 interface Inputs {
@@ -6,7 +5,18 @@ interface Inputs {
 }
 
 const CardElement = ({ card }: Inputs) => {
-  return <div style={{ width: "100px", height: "150px" }}>{card.name}</div>;
+  const imgUrl = card.img && URL.createObjectURL(card.img);
+  return (
+    <div style={{ width: "234px", height: "333px" }}>
+      <div>{card.name}</div>
+      {card.img && (
+        <img
+          alt={card.name}
+          src={imgUrl}
+        />
+      )}
+    </div>
+  );
 };
 
 export default CardElement;

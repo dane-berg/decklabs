@@ -3,6 +3,7 @@ import { Configure } from "./configure";
 
 export type Card = {
   name: string;
+  img: File;
   id: string;
   created: string;
   standard: boolean;
@@ -15,8 +16,16 @@ export class CardsService {
       const response = await axios.get(`${Configure.url}cards/`, {
         sort: "asc",
       } as any);
-      console.log(response);
-      return response.data;
+      console.log(response.data);
+      return response.data.map((cardData) => {
+        // parse each image file
+        const uint8Array = new Uint8Array(cardData.img.buffer.data);
+        const blob = new Blob([uint8Array], { type: cardData.img.mimetype });
+        const file = new File([blob], cardData.img.name, {
+          type: cardData.img.mimetype,
+        });
+        return { ...cardData, img: file };
+      });
     } catch (e) {
       console.log(e);
       return [];

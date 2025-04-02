@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme) => {
 
 function App() {
   const classes = useStyles();
-  const [page, setPage] = useState<Page>(Page.Studio);
+  const [page, setPage] = useState<Page>(Page.Library);
 
   return (
     <StyledEngineProvider injectFirst>
