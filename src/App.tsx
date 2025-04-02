@@ -11,6 +11,7 @@ import makeStyles from "@mui/styles/makeStyles";
 import { useState } from "react";
 import StudioPage from "./components/StudioPage";
 import AboutPage from "./components/AboutPage";
+import LibraryPage from "./components/LibraryPage";
 
 declare module "@mui/styles/defaultTheme" {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -19,6 +20,7 @@ declare module "@mui/styles/defaultTheme" {
 
 enum Page {
   About = "about",
+  Library = "library",
   Login = "login",
   Studio = "studio",
 }
@@ -32,7 +34,7 @@ const useStyles = makeStyles((theme) => {
 
 function App() {
   const classes = useStyles();
-  const [page, setPage] = useState<Page>(Page.Studio);
+  const [page, setPage] = useState<Page>(Page.Library);
 
   return (
     <StyledEngineProvider injectFirst>
@@ -47,6 +49,7 @@ function App() {
         </header>
         <div className="router">
           {page === Page.About && <AboutPage />}
+          {page === Page.Library && <LibraryPage />}
           {page === Page.Login && <LoginPage />}
           {page === Page.Studio && <StudioPage />}
         </div>

@@ -1,6 +1,7 @@
 import { Button } from "@mui/material";
 import axios from "axios";
 import { ChangeEvent, useState } from "react";
+import { CardsService } from "../../injectables/cardsservice";
 
 enum Status {
   Idle = "idle",
@@ -24,20 +25,13 @@ const FileUploader = () => {
   async function handleFileUpload() {
     if (!file) return;
     setStatus(Status.Uploading);
-    const formData = new FormData();
-    formData.append("file", file);
     try {
       setUploadProgress(0);
-      await axios.post("http://httpbin.org/post", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (progressEvent) => {
-          const progressPercent = progressEvent.total
-            ? Math.round((100 * progressEvent.loaded) / progressEvent.total)
-            : 0;
-          setUploadProgress(progressPercent);
-        },
+      await CardsService.create(file.name, (progressEvent) => {
+        const progressPercent = progressEvent.total
+          ? Math.round((100 * progressEvent.loaded) / progressEvent.total)
+          : 0;
+        setUploadProgress(progressPercent);
       });
 
       setStatus(Status.Success);
