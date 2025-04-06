@@ -1,4 +1,3 @@
-import React from "react";
 import FileUploader from "./common/FileUploader";
 import { I18n } from "../injectables/i18n";
 

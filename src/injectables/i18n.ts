@@ -6,12 +6,13 @@ export class I18n {
 
   private static phrases = {
     "dark-mode-string": "Dark mode",
+    "decklabs-title": "Decklabs",
     "file-upload-error": "There was an error while uploading the file.",
     "file-upload-success": "File uploaded successfully!",
     "library-error": "There was an error retrieving the cards library.",
     "loading-string": "loading ...",
     "tab-about": "About",
     "tab-library": "Library",
-    "tab-studio": "Studio",
+    "tab-studio": "Card Studio",
   };
 }
