@@ -15,7 +15,7 @@ const Shelf = () => {
   const [cards, setCards] = useState<Card[]>([]);
   useEffect(() => {
     setState(State.Loading);
-    CardsService.findAll()
+    CardsService.getAll()
       .then((cards) => {
         setCards(cards);
         setState(State.Success);
