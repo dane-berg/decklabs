@@ -6,6 +6,7 @@ interface Inputs {
 
 const CardElement = ({ card }: Inputs) => {
   const imgUrl = card.img && URL.createObjectURL(card.img);
+
   return (
     <div style={{ width: "234px", height: "333px" }}>
       <div>{card.name}</div>
