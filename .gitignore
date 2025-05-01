@@ -28,3 +28,7 @@ decklabs-backend/
 decklabs-backend/*
 backend/
 backend/*
+
+# don't commit assets
+public/
+public/*
