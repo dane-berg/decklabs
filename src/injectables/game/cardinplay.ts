@@ -1,57 +1,74 @@
 import { CanvasElement } from "../render/canvaselement";
 import { Configure } from "../configure";
-import { NoisyRenderData } from "../render/noisyrenderdata";
+import { NoisytransformData } from "../render/noisyrenderdata";
 import {
-  getCardBoundingBox,
-  isRenderData,
-  OptRenderData,
-  Rect,
+  Position,
   RenderData,
+  subtract,
+  TransformData,
 } from "../render/renderutil";
-import { Card, drawCard } from "../cardsservice/card";
+import { Card } from "../cardsservice/card";
 
-/**
- * The CardInPlay CanvasElement should never have child elements because
- * its rendering is randomly perturbed
- */
 export class CardInPlay extends CanvasElement {
-  public renderData: NoisyRenderData = new NoisyRenderData();
+  public static lastHoveredCard?: CardInPlay;
+  public transformData: NoisytransformData = new NoisytransformData();
 
   constructor(public card: Card) {
     super();
   }
 
-  public get rect(): Rect {
-    if (!isRenderData(this.renderData.renderData)) {
-      return { x: 0, y: 0, w: 0, h: 0 };
-    } else {
-      return getCardBoundingBox(this.renderData.renderData);
-    }
-  }
-  public set rect(_rect: Rect) {
-    throw new Error("set CardInPlay.rect");
-  }
-
   public override draw(ctx: CanvasRenderingContext2D) {
-    drawCard(ctx, this.card, 0, 0, 1);
+    ctx.drawImage(
+      this.card.img,
+      0,
+      0,
+      Configure.CARD_WIDTH,
+      Configure.CARD_HEIGHT
+    );
   }
 
-  public override getRenderData(): RenderData {
-    return this.renderData.getCurrentData();
+  public update(
+    renderData: Position & Partial<TransformData>,
+    smoothing: number = Configure.ANIMATION_SMOOTHING
+  ) {
+    this.transformData.update(
+      subtract(
+        { rot: 0, scale: 1, ...renderData },
+        {
+          x: Configure.CARD_WIDTH / 2,
+          y: Configure.CARD_HEIGHT / 2,
+          rot: 0,
+          scale: 0,
+        }
+      ),
+      smoothing
+    );
+    const td =
+      CardInPlay.lastHoveredCard === this
+        ? {
+            x:
+              (this.transformData.transformData.x ?? 0) -
+              Configure.CARD_WIDTH / 2,
+            y:
+              (this.transformData.transformData.y ?? 0) -
+              Configure.CARD_HEIGHT / 2,
+            rot: 0,
+            scale: 1.5,
+          }
+        : this.transformData.getCurrentData();
+    this.rd = {
+      ...td,
+      w: Configure.CARD_WIDTH,
+      h: Configure.CARD_HEIGHT,
+    };
+  }
+
+  public clearRenderData() {
+    this.transformData.clear();
   }
 
   public override handleMouseEnter() {
     console.log("mouse enter card");
-  }
-
-  public update(
-    renderData: OptRenderData,
-    smoothing: number = Configure.ANIMATION_SMOOTHING
-  ) {
-    this.renderData.update({ rot: 0, scale: 1, ...renderData }, smoothing);
-  }
-
-  public clearRenderData() {
-    this.renderData.clear();
+    CardInPlay.lastHoveredCard = this;
   }
 }

@@ -1,5 +1,5 @@
 import { Configure } from "../configure";
-import { loadOntoImage, Position, RenderData } from "../render/renderutil";
+import { loadOntoImage, Position, TransformData } from "../render/renderutil";
 
 export class DropZone {
   private static readonly cardBackImg = new Image();
@@ -8,7 +8,7 @@ export class DropZone {
     "card_back_bw.png"
   );
   public initPromise: Promise<boolean>;
-  public renderData: RenderData = {
+  public renderData: TransformData = {
     x: 0,
     y: 0,
     rot: 0,

@@ -1,15 +1,21 @@
 import { Configure } from "../configure";
-import { RenderData, randNoise, add, scale, isRenderData } from "./renderutil";
+import {
+  TransformData,
+  randNoise,
+  add,
+  scale,
+  isTransformData,
+} from "./renderutil";
 
 export const NOISE_DURATION = 300; // frames
 
-export class NoisyRenderData {
-  public renderData: Partial<RenderData> = {};
+export class NoisytransformData {
+  public transformData: Partial<TransformData> = {};
   public noiseTimeout: number = Math.random() * NOISE_DURATION;
-  public noiseA: RenderData = { x: 0, y: 0, rot: 0, scale: 0 };
-  public noiseB: RenderData = this.newNoise();
+  public noiseA: TransformData = { x: 0, y: 0, rot: 0, scale: 0 };
+  public noiseB: TransformData = this.newNoise();
 
-  public newNoise(): RenderData {
+  public newNoise(): TransformData {
     return {
       x: randNoise(0.02),
       y: randNoise(0.02),
@@ -19,7 +25,7 @@ export class NoisyRenderData {
   }
 
   public update(
-    newData: RenderData,
+    newData: TransformData,
     smoothing: number = Configure.ANIMATION_SMOOTHING
   ) {
     // update noise
@@ -31,30 +37,33 @@ export class NoisyRenderData {
     }
 
     // update actual render data
-    const currentData: RenderData = { ...newData, ...this.renderData };
-    this.renderData = add(
+    const currentData: TransformData = { ...newData, ...this.transformData };
+    this.transformData = add(
       scale(currentData, smoothing),
       scale(newData, 1 - smoothing)
     );
   }
 
-  public getCurrentData(): RenderData {
-    if (!isRenderData(this.renderData)) {
+  public getCurrentData(ignoreNoise: boolean = false): TransformData {
+    if (!isTransformData(this.transformData)) {
       throw new Error(
         "RenderData must be defined for NoisyRenderData.getCurrentData"
       );
     }
+    if (ignoreNoise) {
+      return this.transformData;
+    }
     const t: number = this.noiseTimeout / NOISE_DURATION;
     return add(
-      this.renderData,
+      this.transformData,
       add(scale(this.noiseB, t), scale(this.noiseA, 1 - t))
     );
   }
 
   public clear() {
-    this.renderData.x = undefined;
-    this.renderData.y = undefined;
-    this.renderData.rot = undefined;
-    this.renderData.scale = undefined;
+    this.transformData.x = undefined;
+    this.transformData.y = undefined;
+    this.transformData.rot = undefined;
+    this.transformData.scale = undefined;
   }
 }

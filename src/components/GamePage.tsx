@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Game } from "../injectables/game/game";
 import { Box } from "@mui/material";
+import { Canvas } from "../injectables/render/canvas";
+import { GameElement } from "../injectables/game/gameelement";
 
 interface Inputs {
   game: Game;
@@ -39,19 +41,10 @@ const GamePage = ({ game }: Inputs) => {
   }, [canvasSize]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas) {
-      setErrorString("!canvasRef.current when animating");
-      return;
-    }
-    if (!ctx) {
-      setErrorString("!canvas.getContext( 2d ) when animating");
-      return;
-    }
+    Canvas.rootElement = new GameElement(game);
     const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      game.render(canvas, ctx);
+      canvasRef.current && Canvas.bindToCanvas(canvasRef.current);
+      Canvas.render();
       requestAnimationFrame(animate);
     };
     animate();

@@ -1,20 +1,31 @@
 import { Configure } from "../configure";
 
-export type RenderData = Position & {
-  rot: number;
-  scale: number;
-};
+export type RenderData = TransformData & Rect;
 
 export function isRenderData(rd: any): rd is RenderData {
   return (
     rd.x !== undefined &&
     rd.y !== undefined &&
+    rd.w !== undefined &&
+    rd.h !== undefined &&
     rd.rot !== undefined &&
     rd.scale !== undefined
   );
 }
 
-export type OptRenderData = Position & Partial<RenderData>;
+export type TransformData = Position & {
+  rot: number;
+  scale: number;
+};
+
+export function isTransformData(td: any): td is TransformData {
+  return (
+    td.x !== undefined &&
+    td.y !== undefined &&
+    td.rot !== undefined &&
+    td.scale !== undefined
+  );
+}
 
 export type Position = {
   x: number;
@@ -41,13 +52,23 @@ export function isRect(rect: any): rect is Rect {
   );
 }
 
-export type LinearType = RenderData | Rect | Position;
+export type LinearType = RenderData | TransformData | Rect | Position;
 
 export function scale(a: RenderData, c: number): RenderData;
+export function scale(a: TransformData, c: number): TransformData;
 export function scale(a: Rect, c: number): Rect;
 export function scale(a: Position, c: number): Position;
 export function scale(a: LinearType, c: number): LinearType {
   if (isRenderData(a)) {
+    return {
+      x: c * a.x,
+      y: c * a.y,
+      w: c * a.w,
+      h: c * a.h,
+      rot: c * a.rot,
+      scale: c * a.scale,
+    };
+  } else if (isTransformData(a)) {
     return {
       x: c * a.x,
       y: c * a.y,
@@ -63,10 +84,20 @@ export function scale(a: LinearType, c: number): LinearType {
 }
 
 export function add(a: RenderData, b: RenderData): RenderData;
+export function add(a: TransformData, b: TransformData): TransformData;
 export function add(a: Rect, b: Rect): Rect;
 export function add(a: Position, b: Position): Position;
 export function add(a: LinearType, b: LinearType): LinearType {
   if (isRenderData(a) && isRenderData(b)) {
+    return {
+      x: a.x + b.x,
+      y: a.y + b.y,
+      w: a.w + a.w,
+      h: a.h + b.h,
+      rot: a.rot + b.rot,
+      scale: a.scale + b.scale,
+    };
+  } else if (isTransformData(a) && isTransformData(b)) {
     return {
       x: a.x + b.x,
       y: a.y + b.y,
@@ -87,22 +118,23 @@ export function add(a: LinearType, b: LinearType): LinearType {
 }
 
 export function subtract(a: RenderData, b: RenderData): RenderData;
+export function subtract(a: TransformData, b: TransformData): TransformData;
 export function subtract(a: Rect, b: Rect): Rect;
 export function subtract(a: Position, b: Position): Position;
 export function subtract(a: LinearType, b: LinearType): LinearType {
   return add(a, scale(b, -1));
 }
 
-export function getCardBoundingBox(rd: RenderData): Rect {
-  if (!rd.scale) {
+export function getCardBoundingBox(td: TransformData): Rect {
+  if (!td.scale) {
     return { x: 0, y: 0, w: 0, h: 0 };
   }
 
-  const rX = rd.x;
-  const rY = rd.y;
+  const rX = td.x;
+  const rY = td.y;
   const rW = Configure.CARD_WIDTH;
   const rH = Configure.CARD_HEIGHT;
-  const rA = rd.rot;
+  const rA = td.rot;
 
   const absCosRA = Math.abs(Math.cos(rA));
   const absSinRA = Math.abs(Math.sin(rA));
@@ -110,8 +142,8 @@ export function getCardBoundingBox(rd: RenderData): Rect {
   let bbW = rW * absCosRA + rH * absSinRA;
   let bbH = rW * absSinRA + rH * absCosRA;
 
-  bbW *= rd.scale;
-  bbH *= rd.scale;
+  bbW *= td.scale;
+  bbH *= td.scale;
 
   const bbX = rX - (bbW - rW) / 2;
   const bbY = rY - (bbH - rH) / 2;
