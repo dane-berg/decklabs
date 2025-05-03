@@ -1,7 +1,7 @@
 import { Button } from "@mui/material";
 import { ChangeEvent, useState } from "react";
-import { CardsService } from "../../injectables/cardsservice";
 import { I18n } from "../../injectables/i18n";
+import { CardsService } from "../../injectables/cardsservice/cardsservice";
 
 enum State {
   Idle = "idle",

@@ -20,7 +20,7 @@ import AboutPage from "./components/AboutPage";
 import LibraryPage from "./components/LibraryPage";
 import { I18n } from "./injectables/i18n";
 import { ThemeOptions } from "@mui/material/styles";
-import { Game } from "./injectables/game";
+import { Game } from "./injectables/game/game";
 import GamePage from "./components/GamePage";
 
 export const themeOptions: ThemeOptions = {

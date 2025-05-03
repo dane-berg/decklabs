@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Game } from "../injectables/game";
+import { Game } from "../injectables/game/game";
 import { Box } from "@mui/material";
 
 interface Inputs {
@@ -7,6 +7,7 @@ interface Inputs {
 }
 
 const GamePage = ({ game }: Inputs) => {
+  const [errorString, setErrorString] = useState<String | undefined>(undefined);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
@@ -16,6 +17,8 @@ const GamePage = ({ game }: Inputs) => {
         width: window.innerWidth,
         height: window.innerHeight,
       });
+    } else {
+      setErrorString("!canvasRef.current when initializing canvas size");
     }
   };
 
@@ -30,13 +33,20 @@ const GamePage = ({ game }: Inputs) => {
     if (canvas) {
       canvas.width = canvasSize.width;
       canvas.height = canvasSize.height;
+    } else {
+      setErrorString("!canvasRef.current when updating canvas size");
     }
   }, [canvasSize]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) {
+    if (!canvas) {
+      setErrorString("!canvasRef.current when animating");
+      return;
+    }
+    if (!ctx) {
+      setErrorString("!canvas.getContext( 2d ) when animating");
       return;
     }
     const animate = () => {
@@ -52,24 +62,30 @@ const GamePage = ({ game }: Inputs) => {
       component="div"
       sx={{ height: "100%" }}
     >
-      <img
-        style={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-        }}
-        src="parchment.jpg"
-      ></img>
-      <canvas
-        style={{
-          position: "absolute",
-          width: canvasSize.width,
-          height: canvasSize.height,
-          objectFit: "contain",
-        }}
-        ref={canvasRef}
-      ></canvas>
+      {errorString ? (
+        <div>{errorString}</div>
+      ) : (
+        <>
+          <img
+            style={{
+              position: "absolute",
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+            src="parchment.jpg"
+          ></img>
+          <canvas
+            style={{
+              position: "absolute",
+              width: canvasSize.width,
+              height: canvasSize.height,
+              objectFit: "contain",
+            }}
+            ref={canvasRef}
+          ></canvas>
+        </>
+      )}
     </Box>
   );
 };

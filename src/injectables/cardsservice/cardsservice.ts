@@ -1,6 +1,6 @@
 import axios from "axios";
-import { Configure } from "./configure";
 import { Card } from "./card";
+import { Configure } from "../configure";
 
 /**constructor(
     name: string,

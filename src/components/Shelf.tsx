@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Card, CardsService } from "../injectables/cardsservice";
 import CardElement from "./common/CardElement";
 import { I18n } from "../injectables/i18n";
+import { CardsService } from "../injectables/cardsservice/cardsservice";
+import { Card } from "../injectables/cardsservice/card";
 
 enum State {
   Idle = "idle",

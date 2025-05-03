@@ -1,3 +1,5 @@
+import { Configure } from "../configure";
+
 export class Card {
   public readonly name: string;
   public readonly imgFile: File | string;
@@ -35,4 +37,20 @@ export class Card {
     }
     return this._img;
   }
+}
+
+export function drawCard(
+  ctx: CanvasRenderingContext2D,
+  card: Card,
+  x: number,
+  y: number,
+  scale: number = 1.0
+) {
+  ctx.drawImage(
+    card.img,
+    x - Configure.CARD_WIDTH / 2,
+    y - Configure.CARD_HEIGHT / 2,
+    Configure.CARD_WIDTH * scale,
+    Configure.CARD_HEIGHT * scale
+  );
 }
