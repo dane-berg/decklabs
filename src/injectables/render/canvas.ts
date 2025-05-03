@@ -115,13 +115,14 @@ export class Canvas {
 
   public static renderElement(ctx: CanvasRenderingContext2D, e: CanvasElement) {
     ctx.save();
-    ctx.translate(e.rd.x, e.rd.y);
+    ctx.translate(e.rd.x + e.rd.w / 2, e.rd.y + e.rd.h / 2);
     if (e.rd.rot) {
       ctx.rotate(e.rd.rot);
     }
     if (e.rd.scale !== 1) {
       ctx.scale(e.rd.scale, e.rd.scale);
     }
+    ctx.translate(-e.rd.w / 2, -e.rd.h / 2);
     if (e.rd.w && e.rd.h && e.rd.scale) {
       e.draw(ctx);
       if (DEBUG_MODE) {

@@ -92,7 +92,7 @@ export function add(a: LinearType, b: LinearType): LinearType {
     return {
       x: a.x + b.x,
       y: a.y + b.y,
-      w: a.w + a.w,
+      w: a.w + b.w,
       h: a.h + b.h,
       rot: a.rot + b.rot,
       scale: a.scale + b.scale,

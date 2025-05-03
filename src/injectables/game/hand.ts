@@ -34,7 +34,19 @@ export class Hand extends CanvasElement {
               ? Configure.CARD_WIDTH / 2
               : -Configure.CARD_WIDTH / 2;
         }
-        card.update({ x: this.rd.w / 2 + dx, y: dy, rot: angle, scale: 1 });
+        if (lastHoveredIndex === index) {
+          card.update(
+            {
+              x: this.rd.w / 2 + dx,
+              y: dy / Configure.NONOVERLAP_RATIO,
+              rot: 0,
+              scale: 1.5,
+            },
+            0
+          );
+        } else {
+          card.update({ x: this.rd.w / 2 + dx, y: dy, rot: angle, scale: 1 });
+        }
         card.zIndex = ZIndex.HandCard;
       });
     });
