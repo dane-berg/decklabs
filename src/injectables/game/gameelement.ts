@@ -6,8 +6,8 @@ import { Game } from "./game";
 export class GameElement extends RootElement {
   constructor(public game: Game) {
     super();
-    this.addChild(game.playerPlayArea, false);
-    this.addChild(game.playerHand, false);
+    this.addChild(game.playerPlayArea, undefined, false);
+    this.addChild(game.playerHand, undefined, false);
   }
 
   public override update(rect: Rect) {

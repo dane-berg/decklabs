@@ -16,5 +16,6 @@ export class I18n {
     "tab-about": "About",
     "tab-library": "Library",
     "tab-studio": "Card Studio",
+    "upload-file": "Upload File",
   };
 }

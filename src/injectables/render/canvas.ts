@@ -138,8 +138,8 @@ export class Canvas {
     if (e.rd.w && e.rd.h && e.rd.scale) {
       e.draw(ctx);
       if (DEBUG_MODE) {
-        ctx.strokeStyle = "blue";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = e.zIndex ? "cyan" : "black";
+        ctx.lineWidth = e.zIndex ? 4 : 1;
         ctx.strokeRect(0, 0, e.rd.w, e.rd.h);
       }
     }

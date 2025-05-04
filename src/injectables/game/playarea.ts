@@ -9,14 +9,16 @@ export class PlayArea extends CanvasElement {
   public override children: CardInPlay[] = [];
 
   constructor() {
-    super({ x: 0, y: 0, w: 0, h: 0, rot: 0, scale: 1 }, ZIndex.Background);
+    super({ x: 0, y: 0, w: 0, h: 0, rot: 0, scale: 1 }, ZIndex.NonInteractive);
   }
 
   public get zIndex(): number {
     return this._zIndex;
   }
-  public set zIndex(_zIndex: number) {
-    throw new Error("set PlayArea.zIndex");
+  public set zIndex(zIndex: number) {
+    if (zIndex !== this._zIndex) {
+      throw new Error(`cannot set PlayArea.zIndex to ${zIndex}`);
+    }
   }
 
   public update(rect: Rect) {

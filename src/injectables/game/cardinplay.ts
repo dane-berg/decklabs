@@ -11,6 +11,7 @@ import {
 } from "../render/renderutil";
 import { Card } from "../cardsservice/card";
 import { Game } from "./game";
+import { CardCanvasElement } from "./cardcanvaselement";
 
 const NOISE_SCALE = 0.04;
 
@@ -24,6 +25,7 @@ export class CardInPlay extends CanvasElement {
     public noiseScale: number = NOISE_SCALE
   ) {
     super();
+    this.addChild(new CardCanvasElement(this.card));
   }
 
   public get rd(): RenderData {
@@ -74,12 +76,6 @@ export class CardInPlay extends CanvasElement {
     };
     this.noiseScale =
       this.noiseScale * smoothing + noiseScale * (1 - smoothing);
-  }
-
-  public override draw(ctx: CanvasRenderingContext2D) {
-    const img = this.card.getImg();
-    img &&
-      ctx.drawImage(img, 0, 0, Configure.CARD_WIDTH, Configure.CARD_HEIGHT);
   }
 
   public override onMouseEnter() {

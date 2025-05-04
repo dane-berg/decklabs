@@ -54,11 +54,16 @@ export class CanvasElement {
     );
   }
 
-  public addChild(e: CanvasElement, preservePosition: boolean = true) {
+  public addChild(
+    e: CanvasElement,
+    zIndex: number | undefined = undefined,
+    preservePosition: boolean = true
+  ) {
     this.children.push(e);
     if (preservePosition) {
       // TODO: account for scale & rotation
-      e.rd = { ...e.rd, x: e.rd.x + this.rd.x, y: e.rd.y + this.rd.y };
+      e.rd = { ...e.rd, x: e.rd.x - this.rd.x, y: e.rd.y - this.rd.y };
+      e.zIndex = zIndex ?? e.zIndex;
     }
   }
 
@@ -67,9 +72,10 @@ export class CanvasElement {
     if (index > -1) {
       if (preservePosition) {
         // TODO: account for scale & rotation
-        e.rd = { ...e.rd, x: e.rd.x - this.rd.x, y: e.rd.y - this.rd.y };
+        e.rd = { ...e.rd, x: e.rd.x + this.rd.x, y: e.rd.y + this.rd.y };
       }
       this.children.splice(index, 1);
+      e.zIndex = ZIndex.NonInteractive;
     } else {
       throw new Error("removeChild received an orphan");
     }

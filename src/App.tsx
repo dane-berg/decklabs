@@ -64,9 +64,10 @@ function TabPanel(props: TabPanelProps) {
       hidden={value !== index}
       id={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
+      style={{ height: "calc(100% - 16px)", padding: 8 }}
       {...other}
     >
-      {value === index && <div>{children}</div>}
+      {value === index && <>{children}</>}
     </div>
   );
 }
@@ -74,7 +75,7 @@ function TabPanel(props: TabPanelProps) {
 function App() {
   const [tabIndex, setTabIndex] = useState<number>(0);
   const theme = createTheme(themeOptions);
-  const [game, setGame] = useState<Game | null>(new Game()); // start a game by default for dev purposes
+  const [game, setGame] = useState<Game | undefined>(undefined);
 
   function quickPlay() {
     console.log("quick play!");
@@ -119,7 +120,7 @@ function App() {
                   <Tab
                     label={tab.label}
                     key={tab.value}
-                    sx={{ minWidth: { sm: 160 } }}
+                    sx={{ minWidth: { sm: 144 } }}
                   />
                 ))}
               </Tabs>
@@ -128,13 +129,10 @@ function App() {
         </AppBar>
         <Box
           component="main"
-          sx={{ height: "100%", marginTop: 8 }}
+          sx={{ height: "calc(100% - 64px)", paddingTop: 8 }}
         >
           {!game && (
-            <Box
-              component="div"
-              sx={{ margin: 1 }}
-            >
+            <>
               <TabPanel
                 value={tabIndex}
                 page={Page.About}
@@ -159,7 +157,7 @@ function App() {
               >
                 <StudioPage />
               </TabPanel>
-            </Box>
+            </>
           )}
           {!!game && <GamePage game={game} />}
         </Box>
