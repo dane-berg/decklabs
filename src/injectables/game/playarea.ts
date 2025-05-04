@@ -3,7 +3,7 @@ import { Configure } from "../configure";
 import { CanvasElement, ZIndex } from "../render/canvaselement";
 import { Rect } from "../render/renderutil";
 
-const HORIZONTAL_SPACING = 1.1;
+const SPACING = 1.1;
 
 export class PlayArea extends CanvasElement {
   public override children: CardInPlay[] = [];
@@ -24,7 +24,7 @@ export class PlayArea extends CanvasElement {
 
     if (this.rd.w) {
       const necessaryWidth =
-        (1 + this.children.length) * Configure.CARD_WIDTH * HORIZONTAL_SPACING;
+        (1 + this.children.length) * Configure.CARD_WIDTH * SPACING;
       this.rd.scale = Math.max(1, necessaryWidth / this.rd.w);
       if (this.rd.scale > 1) {
         console.log(`canvasScale: ${this.rd.scale}`);
@@ -37,13 +37,9 @@ export class PlayArea extends CanvasElement {
         (1 + this.children.length);
     this.children.forEach((card, index) =>
       card.update({
-        x: x_scale * (index - (this.children.length - 1) / 2),
-        y: 0,
+        x: x_scale * (index - (this.children.length - 1) / 2) + this.rd.w / 2,
+        y: (Configure.CARD_HEIGHT * SPACING) / 2,
       })
     );
-  }
-
-  public override handleMouseEnter() {
-    console.log("mouse enter playarea");
   }
 }

@@ -71,7 +71,14 @@ export class Canvas {
       this.canvas = canvas;
       this.canvas.addEventListener("mousemove", (event) => {
         const rect: DOMRect = canvas.getBoundingClientRect();
-        this.handleCursorPosition({
+        this.handleMouseMove({
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        });
+      });
+      this.canvas.addEventListener("click", (event) => {
+        const rect: DOMRect = canvas.getBoundingClientRect();
+        this.handleClick({
           x: event.clientX - rect.left,
           y: event.clientY - rect.top,
         });
@@ -79,7 +86,7 @@ export class Canvas {
     }
   }
 
-  private static handleCursorPosition(pos: Position) {
+  private static handleMouseMove(pos: Position) {
     this.unDirtyZOrder();
     let newHoverTarget = this.elements.find((e) => {
       if (!e.zIndex) {
@@ -94,9 +101,14 @@ export class Canvas {
     }
 
     if (newHoverTarget !== this.currentHoverTarget) {
-      newHoverTarget?.handleMouseEnter(pos);
+      newHoverTarget?.onMouseEnter(pos);
     }
     this.currentHoverTarget = newHoverTarget;
+  }
+
+  private static handleClick(pos: Position) {
+    this.handleMouseMove(pos);
+    this.currentHoverTarget?.onClick(pos);
   }
 
   public static render() {

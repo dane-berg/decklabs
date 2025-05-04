@@ -10,6 +10,7 @@ import {
   TransformData,
 } from "../render/renderutil";
 import { Card } from "../cardsservice/card";
+import { Game } from "./game";
 
 const NOISE_SCALE = 0.04;
 
@@ -17,28 +18,32 @@ export class CardInPlay extends CanvasElement {
   public static lastHoveredCard?: CardInPlay;
   public transformData: NoisyTransformData = new NoisyTransformData();
 
-  constructor(public card: Card, public noiseScale: number = NOISE_SCALE) {
+  constructor(
+    private game: Game,
+    public card: Card,
+    public noiseScale: number = NOISE_SCALE
+  ) {
     super();
   }
 
   public get rd(): RenderData {
     return add(
-      subtract(this._rd, {
-        x: Configure.CARD_WIDTH / 2,
-        y: Configure.CARD_HEIGHT / 2,
-        w: 0,
-        h: 0,
-        rot: 0,
-        scale: 0,
-      }),
+      this._rd,
       scale(
         { ...this.transformData.getCurrentData(), w: 0, h: 0 },
         this.noiseScale
       )
     );
   }
-  public set rd(_rd: RenderData) {
-    throw new Error("CardInPlay.rd setter");
+  public set rd(rd: RenderData) {
+    this._rd = subtract(rd, {
+      x: Configure.CARD_WIDTH / 2,
+      y: Configure.CARD_HEIGHT / 2,
+      w: 0,
+      h: 0,
+      rot: 0,
+      scale: 0,
+    });
   }
 
   public update(
@@ -49,7 +54,18 @@ export class CardInPlay extends CanvasElement {
     this.transformData.update();
     const newData = add(
       scale(this._rd, smoothing),
-      scale({ rot: 0, scale: 1, ...renderData }, 1 - smoothing)
+      scale(
+        subtract(
+          { rot: 0, scale: 1, ...renderData },
+          {
+            x: Configure.CARD_WIDTH / 2,
+            y: Configure.CARD_HEIGHT / 2,
+            rot: 0,
+            scale: 0,
+          }
+        ),
+        1 - smoothing
+      )
     );
     this._rd = {
       ...newData,
@@ -61,17 +77,18 @@ export class CardInPlay extends CanvasElement {
   }
 
   public override draw(ctx: CanvasRenderingContext2D) {
-    ctx.drawImage(
-      this.card.img,
-      0,
-      0,
-      Configure.CARD_WIDTH,
-      Configure.CARD_HEIGHT
-    );
+    const img = this.card.getImg();
+    img &&
+      ctx.drawImage(img, 0, 0, Configure.CARD_WIDTH, Configure.CARD_HEIGHT);
   }
 
-  public override handleMouseEnter() {
-    console.log("mouse enter card");
+  public override onMouseEnter() {
+    console.log("cardinplay onMouseEnter");
     CardInPlay.lastHoveredCard = this;
+  }
+
+  public override onClick() {
+    console.log("cardinplay onClick");
+    this.game.onCardCast(this);
   }
 }

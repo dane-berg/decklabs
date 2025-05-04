@@ -10,8 +10,9 @@ export enum ZIndex {
 }
 
 export class CanvasElement {
+  // do not modify these properties manually
   public children: CanvasElement[] = [];
-  public parent?: CanvasElement; // only the CanvasEventHandler should ever use this
+  public parent?: CanvasElement;
 
   constructor(
     protected _rd: RenderData = { x: 0, y: 0, w: 0, h: 0, rot: 0, scale: 1 },
@@ -53,7 +54,30 @@ export class CanvasElement {
     );
   }
 
-  public handleMouseEnter(_pos: Position): void | Promise<void> {}
+  public addChild(e: CanvasElement, preservePosition: boolean = true) {
+    this.children.push(e);
+    if (preservePosition) {
+      // TODO: account for scale & rotation
+      e.rd = { ...e.rd, x: e.rd.x + this.rd.x, y: e.rd.y + this.rd.y };
+    }
+  }
+
+  public removeChild(e: CanvasElement, preservePosition: boolean = true) {
+    const index = this.children.indexOf(e);
+    if (index > -1) {
+      if (preservePosition) {
+        // TODO: account for scale & rotation
+        e.rd = { ...e.rd, x: e.rd.x - this.rd.x, y: e.rd.y - this.rd.y };
+      }
+      this.children.splice(index, 1);
+    } else {
+      throw new Error("removeChild received an orphan");
+    }
+  }
+
+  public onMouseEnter(_pos: Position): void | Promise<void> {}
+
+  public onClick(_pos: Position): void | Promise<void> {}
 }
 
 export abstract class RootElement extends CanvasElement {

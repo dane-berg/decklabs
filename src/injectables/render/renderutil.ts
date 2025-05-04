@@ -170,11 +170,21 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 
 export function loadOntoImage(
   img: HTMLImageElement,
-  src: string
+  src: File | string
 ): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    img.onload = () => resolve(true);
-    img.onerror = reject;
-    img.src = src;
-  });
+  if (typeof src === "string") {
+    return new Promise((resolve, reject) => {
+      img.onload = () => resolve(true);
+      img.onerror = reject;
+      img.src = src;
+    });
+  } else {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () =>
+        resolve(loadOntoImage(img, reader.result as string));
+      reader.onerror = reject;
+      reader.readAsDataURL(src);
+    });
+  }
 }
