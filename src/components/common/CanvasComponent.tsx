@@ -5,6 +5,7 @@ import { Canvas } from "../../injectables/render/canvas";
 interface Inputs {
   width?: number | string;
   height?: number | string;
+  aspectRatio?: number;
   backgroundImg?: string;
   rootElement?: RootElement;
 }
@@ -12,6 +13,7 @@ interface Inputs {
 const CanvasComponent = ({
   width,
   height,
+  aspectRatio,
   backgroundImg,
   rootElement,
 }: Inputs) => {
@@ -32,6 +34,13 @@ const CanvasComponent = ({
       return;
     }
     const newSize = divRef.current.getBoundingClientRect();
+    const containerAspectRatio = newSize.height / newSize.width;
+    if (aspectRatio && containerAspectRatio > aspectRatio) {
+      newSize.height = newSize.width * aspectRatio;
+    }
+    if (aspectRatio && containerAspectRatio < aspectRatio) {
+      newSize.width = newSize.height / aspectRatio;
+    }
     setCanvasSize(newSize);
     canvasRef.current.width = newSize.width;
     canvasRef.current.height = newSize.height;
@@ -54,12 +63,23 @@ const CanvasComponent = ({
   }, [rootElement]);
 
   return errorString ? (
-    <div style={{ width: width ?? "100%", height: height ?? "100%" }}>
+    <div
+      style={{
+        width: width ?? "100%",
+        height: height ?? "100%",
+      }}
+    >
       {errorString}
     </div>
   ) : (
     <div
-      style={{ width: width ?? "100%", height: height ?? "100%" }}
+      style={{
+        width: width ?? "100%",
+        height: height ?? "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
       ref={divRef}
     >
       {backgroundImg && (
@@ -75,7 +95,8 @@ const CanvasComponent = ({
       )}
       <canvas
         style={{
-          ...canvasSize,
+          width: canvasSize?.width,
+          height: canvasSize?.height,
           position: "absolute",
           objectFit: "contain",
         }}

@@ -4,19 +4,41 @@ import InputFileUpload from "./common/InputFileUpload";
 import { Card } from "../injectables/cardsservice/card";
 import CanvasComponent from "./common/CanvasComponent";
 import { CardCanvasElement } from "../injectables/game/cardcanvaselement";
+import { Configure } from "../injectables/configure";
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  TextField,
+} from "@mui/material";
+import {
+  defaultTemplateValue,
+  Template,
+  Templates,
+  TemplateValue,
+} from "../injectables/cardsservice/template";
 
 const tileStyles = {
   backgroundColor: "lightgrey",
   flex: 1,
   display: "flex",
+  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
   borderRadius: 16,
+  padding: 16,
+  gap: 8,
 };
 
 const StudioPage = () => {
-  const [card, setCard] = useState<Card | undefined>(undefined);
+  const defaultName = "Untitled Card";
+  const [name, setName] = useState(defaultName);
+  const [template, setTemplate] = useState<TemplateValue>(defaultTemplateValue);
+  const [img, setImg] = useState<File | undefined>(undefined);
 
+  // TODO: re-add the ability to publish cards
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <h2>{I18n.get("tab-studio")}</h2>
@@ -31,16 +53,47 @@ const StudioPage = () => {
         }}
       >
         <div style={tileStyles}>
-          <InputFileUpload
-            onFileChange={(file) =>
-              setCard(
-                file ? new Card(file.name, file, "", "", true) : undefined
-              )
-            }
+          <TextField
+            id="outlined-controlled"
+            label="Controlled"
+            value={name}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setName(event.target.value);
+            }}
           />
+          <FormControl>
+            <InputLabel id="template-select-label">
+              {I18n.get("template")}
+            </InputLabel>
+            <Select
+              labelId="template-select-label"
+              id="template-select"
+              value={template}
+              label={I18n.get("template")}
+              onChange={(event: SelectChangeEvent) =>
+                setTemplate(event.target.value as TemplateValue)
+              }
+            >
+              {(Object.values(Templates) as Template[]).map((template) => (
+                <MenuItem
+                  key={template.value}
+                  value={template.value}
+                >
+                  {template.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <InputFileUpload onFileChange={setImg} />
         </div>
         <div style={tileStyles}>
-          <CanvasComponent rootElement={card && new CardCanvasElement(card)} />
+          <CanvasComponent
+            aspectRatio={Configure.CARD_HEIGHT / Configure.CARD_WIDTH}
+            rootElement={
+              img &&
+              new CardCanvasElement(new Card(name, img, "", "", true, template))
+            }
+          />
         </div>
       </div>
     </div>

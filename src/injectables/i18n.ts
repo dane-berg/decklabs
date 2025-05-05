@@ -6,6 +6,13 @@ export class I18n {
 
   private static phrases = {
     "card-preview-alt": "Card preview",
+    "color-black": "Black",
+    "color-blue": "Blue",
+    "color-colorless": "Colorless",
+    "color-gold": "Gold",
+    "color-green": "Green",
+    "color-red": "Red",
+    "color-white": "White",
     "dark-mode-string": "Dark mode",
     "decklabs-title": "Decklabs",
     "file-upload-error": "There was an error while uploading the file.",
@@ -16,6 +23,7 @@ export class I18n {
     "tab-about": "About",
     "tab-library": "Library",
     "tab-studio": "Card Studio",
+    template: "Template",
     "upload-file": "Upload File",
   };
 }

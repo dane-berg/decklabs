@@ -1,4 +1,5 @@
 import { loadOntoImage } from "../render/renderutil";
+import { defaultTemplateValue, Templates, TemplateValue } from "./template";
 
 export class Card {
   private _img = new Image();
@@ -9,7 +10,8 @@ export class Card {
     private readonly imgSrc: File | string,
     public readonly id: string,
     public readonly created: string,
-    public readonly standard: boolean
+    public readonly standard: boolean,
+    public readonly templateValue: TemplateValue = defaultTemplateValue
   ) {
     this.init();
   }
@@ -20,5 +22,10 @@ export class Card {
 
   public getImg(): HTMLImageElement | undefined {
     return this.imgLoaded ? this._img : undefined;
+  }
+
+  public getTemplateImg(): HTMLImageElement | undefined {
+    const template = Templates[this.templateValue];
+    return template?.getImg();
   }
 }

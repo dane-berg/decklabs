@@ -134,7 +134,7 @@ export class Canvas {
     if (e.rd.scale !== 1) {
       ctx.scale(e.rd.scale, e.rd.scale);
     }
-    ctx.translate(-e.rd.w / 2, -e.rd.h / 2);
+    ctx.translate((-0.5 * e.rd.w) / e.rd.scale, (-0.5 * e.rd.h) / e.rd.scale);
     if (e.rd.w && e.rd.h && e.rd.scale) {
       e.draw(ctx);
       if (DEBUG_MODE) {

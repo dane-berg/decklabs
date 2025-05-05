@@ -86,6 +86,8 @@ export class CanvasElement {
   public onClick(_pos: Position): void | Promise<void> {}
 }
 
-export abstract class RootElement extends CanvasElement {
-  public abstract update(rect: Rect): void;
+export class RootElement extends CanvasElement {
+  public update(rect: Rect) {
+    this.rd = { ...this.rd, ...rect };
+  }
 }
