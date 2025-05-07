@@ -12,4 +12,5 @@ export class Configure {
   public static readonly card_font_size = 7;
   public static readonly card_font = "Arial"; // TODO: pick a better font
   public static readonly card_font_str = `${this.card_font_size}px ${this.card_font}`;
+  public static readonly max_mana_value = 9;
 }

@@ -1,4 +1,5 @@
 import { loadOntoImage } from "../render/renderutil";
+import { ManaColorValue } from "./manacolor";
 import { defaultTemplateValue, Templates, TemplateValue } from "./template";
 
 export class Card {
@@ -11,7 +12,8 @@ export class Card {
     public readonly id: string,
     public readonly created: string,
     public readonly standard: boolean,
-    public readonly templateValue: TemplateValue = defaultTemplateValue
+    public readonly templateValue: TemplateValue = defaultTemplateValue,
+    public readonly mana: Partial<Record<ManaColorValue, number>> = {}
   ) {
     this.init();
   }

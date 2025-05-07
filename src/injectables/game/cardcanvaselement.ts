@@ -1,4 +1,9 @@
 import { Card } from "../cardsservice/card";
+import {
+  ManaColor,
+  ManaColors,
+  ManaColorValue,
+} from "../cardsservice/manacolor";
 import { Configure } from "../configure";
 import { RootElement } from "../render/canvaselement";
 import { Rect } from "../render/renderutil";
@@ -27,6 +32,13 @@ export class CardCanvasElement extends RootElement {
   public override draw(ctx: CanvasRenderingContext2D) {
     const img = this.card.getImg();
     const templateImg = this.card.getTemplateImg();
+    const manaImgs = (Object.keys(ManaColors) as ManaColorValue[]).flatMap(
+      (colorValue: ManaColorValue) => {
+        const manaColor = ManaColors[colorValue];
+        const numMana = this.card.mana[colorValue];
+        return numMana ? Array(numMana).fill(manaColor.getImg()) : [];
+      }
+    );
     if (img && templateImg) {
       // TODO: crop the art to preserve aspect ratio
       ctx.drawImage(img, 9, 20, 108, 76);
@@ -37,6 +49,17 @@ export class CardCanvasElement extends RootElement {
         Configure.CARD_WIDTH,
         Configure.CARD_HEIGHT
       );
+      manaImgs.forEach((img, index) => {
+        const diameter = 8;
+        const imgSize = 7;
+        const x = 122 + (1 + (2 * diameter) / 2) * (index - manaImgs.length);
+        const y = 13;
+        ctx.fillStyle = "darkgrey";
+        ctx.beginPath();
+        ctx.arc(x, y, diameter / 2, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.drawImage(img, x - imgSize / 2, y - imgSize / 2, imgSize, imgSize);
+      });
       ctx.font = Configure.card_font_str;
       ctx.fillStyle = "black";
       ctx.fillText(this.card.name, 10, 16);

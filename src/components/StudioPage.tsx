@@ -19,6 +19,11 @@ import {
   Templates,
   TemplateValue,
 } from "../injectables/cardsservice/template";
+import {
+  ManaColors,
+  ManaColorValue,
+} from "../injectables/cardsservice/manacolor";
+import IconPicker from "./common/IconPicker";
 
 const tileStyles = {
   backgroundColor: "lightgrey",
@@ -34,6 +39,7 @@ const tileStyles = {
 
 const StudioPage = () => {
   const defaultName = "Untitled Card";
+  const [mana, setMana] = useState<Partial<Record<ManaColorValue, number>>>({});
   const [name, setName] = useState(defaultName);
   const [template, setTemplate] = useState<TemplateValue>(defaultTemplateValue);
   const [img, setImg] = useState<File | undefined>(undefined);
@@ -53,6 +59,11 @@ const StudioPage = () => {
         }}
       >
         <div style={tileStyles}>
+          <IconPicker<ManaColorValue>
+            options={Object.values(ManaColors)}
+            maxValue={Configure.max_mana_value}
+            onSelectionChange={(selection) => setMana(selection)}
+          />
           <TextField
             id="outlined-controlled"
             label="Controlled"
@@ -91,7 +102,9 @@ const StudioPage = () => {
             aspectRatio={Configure.CARD_HEIGHT / Configure.CARD_WIDTH}
             rootElement={
               img &&
-              new CardCanvasElement(new Card(name, img, "", "", true, template))
+              new CardCanvasElement(
+                new Card(name, img, "", "", true, template, mana)
+              )
             }
           />
         </div>
