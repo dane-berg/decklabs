@@ -25,7 +25,7 @@ export class Hand extends CanvasElement {
       batch.forEach((card: CardInPlay, index: number) => {
         let dx = index - 0.5 * (batch.length - 1);
         dx *= Configure.CARD_WIDTH * Configure.NONOVERLAP_RATIO;
-        let dy = batchIndex - rows;
+        let dy = batchIndex - rows + Configure.NONOVERLAP_RATIO;
         dy *= Configure.CARD_HEIGHT * Configure.NONOVERLAP_RATIO;
         const angle = Math.asin(dx / radius);
         if (lastHoveredIndex !== -1 && lastHoveredIndex !== index) {
@@ -38,16 +38,17 @@ export class Hand extends CanvasElement {
           card.update(
             {
               x: this.rd.w / 2 + dx,
-              y: dy / Configure.NONOVERLAP_RATIO,
+              y: dy / Configure.NONOVERLAP_RATIO, // TODO: move hovered card upwards
               rot: 0,
-              scale: 1.5,
+              scale: 2,
             },
             0
           );
+          card.zIndex = ZIndex.Selection;
         } else {
           card.update({ x: this.rd.w / 2 + dx, y: dy, rot: angle, scale: 1 });
+          card.zIndex = ZIndex.HandCard;
         }
-        card.zIndex = ZIndex.HandCard;
       });
     });
   }

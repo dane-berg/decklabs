@@ -1,38 +1,93 @@
 import axios from "axios";
 import { Card } from "./card";
 import { Configure } from "../configure";
-
-/**constructor(
-    name: string,
-    imgFile: File,
-    id: string,
-    created: string,
-    standard: boolean
-  ) */
+import { TemplateValue } from "./template";
+import { ManaColorValue } from "./manacolor";
 
 // singleton injectable that handles all cards
 export class CardsService {
   private static cards: Card[] = [
     new Card(
-      "Red Template",
-      "red_template.png",
-      "1000",
+      "Colorless Template",
+      "weooweeoo",
+      "colorless_mana.png",
+      TemplateValue.Gold,
+      "-1",
       new Date().toISOString(),
-      true
+      true,
+      { [ManaColorValue.Colorless]: 1 },
+      "Weird",
+      ""
     ),
     new Card(
-      "Green Template",
-      "green_template.png",
-      "1001",
+      "White Template",
+      "",
+      "white_mana.png",
+      TemplateValue.White,
+      "-2",
       new Date().toISOString(),
-      true
+      true,
+      { [ManaColorValue.Colorless]: 1, [ManaColorValue.White]: 1 },
+      "Useless",
+      "",
+      0,
+      0
     ),
     new Card(
       "Blue Template",
-      "blue_template.png",
-      "1002",
+      "",
+      "blue_mana.png",
+      TemplateValue.Blue,
+      "-3",
       new Date().toISOString(),
-      true
+      true,
+      { [ManaColorValue.Blue]: 3 },
+      "Shield",
+      "",
+      0,
+      1
+    ),
+    new Card(
+      "Black Template",
+      "rawr",
+      "black_mana.png",
+      TemplateValue.Black,
+      "-4",
+      new Date().toISOString(),
+      true,
+      { [ManaColorValue.Black]: 4 },
+      "Smol Boi",
+      "",
+      2,
+      2
+    ),
+    new Card(
+      "Red Template",
+      "ssssssssssss",
+      "red_mana.png",
+      TemplateValue.Red,
+      "-5",
+      new Date().toISOString(),
+      true,
+      { [ManaColorValue.Red]: 5 },
+      "Vampire",
+      "",
+      3,
+      3
+    ),
+    new Card(
+      "Green Template",
+      "",
+      "green_mana.png",
+      TemplateValue.Green,
+      "-6",
+      new Date().toISOString(),
+      true,
+      { [ManaColorValue.Green]: 6 },
+      "Big Boi",
+      "",
+      4,
+      4
     ),
   ];
   private static initPromise?: Promise<void>;
@@ -48,7 +103,7 @@ export class CardsService {
 
   static async getAll(limit: number = 100): Promise<Card[]> {
     await this.init();
-    return this.cards;
+    return this.cards.slice(0, limit);
   }
 
   /**@Get('standard')
@@ -94,6 +149,7 @@ export class CardsService {
         const file = new File([blob], cardData.img.name, {
           type: cardData.img.mimetype,
         });
+        // TODO: call the Card constructor
         return { ...cardData, img: file };
       });
     } catch (e) {

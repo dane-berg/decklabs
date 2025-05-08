@@ -20,7 +20,7 @@ export class ManaColor {
     this.imgLoaded = await loadOntoImage(this._img, this.imgSrc);
   }
 
-  public getImg(): HTMLImageElement | undefined {
+  public get img(): HTMLImageElement | undefined {
     return this.imgLoaded ? this._img : undefined;
   }
 }

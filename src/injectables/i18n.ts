@@ -23,7 +23,13 @@ export class I18n {
     "tab-about": "About",
     "tab-library": "Library",
     "tab-studio": "Card Studio",
-    template: "Template",
     "upload-file": "Upload File",
+    "word-description": "Description",
+    "word-effect": "Effect",
+    "word-power": "Power",
+    "word-template": "Template",
+    "word-title": "Title",
+    "word-toughness": "Toughness",
+    "word-traits": "Traits",
   };
 }

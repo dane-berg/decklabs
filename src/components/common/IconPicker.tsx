@@ -39,7 +39,11 @@ const IconPicker = <T extends string | number>({
           minValue={0}
           icon={
             <Avatar
-              sx={{ bgcolor: "darkgrey", marginLeft: 1 }}
+              sx={{
+                bgcolor: "darkgrey",
+                // ideally this should be handled inside of NumberField.tsx, but it is difficult to style 'projected' content
+                marginLeft: selection[icon.value] === undefined ? 1 : 0,
+              }}
               alt={icon.name}
               src={icon.imgSrc}
             />
