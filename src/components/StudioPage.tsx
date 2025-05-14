@@ -1,5 +1,5 @@
 import { I18n } from "../injectables/i18n";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import InputFileUpload from "./common/InputFileUpload";
 import { Card } from "../injectables/cardsservice/card";
 import CanvasComponent from "./common/CanvasComponent";
@@ -25,6 +25,7 @@ import {
 } from "../injectables/cardsservice/manacolor";
 import IconPicker from "./common/IconPicker";
 import NumberField from "./common/NumberField";
+import { CardsService } from "../injectables/cardsservice/cardsservice";
 
 const tileStyles = {
   backgroundColor: "lightgrey",
@@ -41,7 +42,8 @@ const tileStyles = {
 const StudioPage = () => {
   const defaultName = "Untitled Card";
   const [name, setName] = useState(defaultName);
-  const [template, setTemplate] = useState<TemplateValue>(defaultTemplateValue);
+  const [templateValue, setTemplateValue] =
+    useState<TemplateValue>(defaultTemplateValue);
   const [mana, setMana] = useState<Partial<Record<ManaColorValue, number>>>({});
   const [img, setImg] = useState<File | undefined>(undefined);
   const [traits, setTraits] = useState("");
@@ -50,6 +52,45 @@ const StudioPage = () => {
   const [power, setPower] = useState<number | undefined>(undefined);
   const [toughness, setToughness] = useState<number | undefined>(undefined);
 
+  const [card, setCard] = useState<Card>(() =>
+    CardsService.createCard({
+      name: name,
+      templateValue: templateValue,
+      mana: mana,
+      imgSrc: img,
+      traits: traits,
+      effect: effect,
+      description: description,
+      power: power,
+      toughness: toughness,
+    })
+  );
+
+  useEffect(() => {
+    CardsService.updateCard(card.id, {
+      name: name,
+      templateValue: templateValue,
+      mana: mana,
+      imgSrc: img,
+      traits: traits,
+      effect: effect,
+      description: description,
+      power: power,
+      toughness: toughness,
+    });
+  }, [
+    name,
+    templateValue,
+    mana,
+    img,
+    traits,
+    effect,
+    description,
+    power,
+    toughness,
+  ]);
+
+  // TODO: allow editing unpublished cards. When the current card is changed, update the other state via useEffect
   // TODO: re-add the ability to publish cards
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -93,10 +134,10 @@ const StudioPage = () => {
                 <Select
                   labelId="template-select-label"
                   id="template-select"
-                  value={template}
+                  value={templateValue}
                   label={I18n.get("template")}
                   onChange={(event: SelectChangeEvent) =>
-                    setTemplate(event.target.value as TemplateValue)
+                    setTemplateValue(event.target.value as TemplateValue)
                   }
                 >
                   {(Object.values(Templates) as Template[]).map((template) => (
@@ -192,25 +233,7 @@ const StudioPage = () => {
             // Card preview
             <CanvasComponent
               aspectRatio={Configure.CARD_HEIGHT / Configure.CARD_WIDTH}
-              rootElement={
-                img &&
-                new CardCanvasElement(
-                  new Card(
-                    name,
-                    description,
-                    img,
-                    template,
-                    "",
-                    "",
-                    true,
-                    mana,
-                    traits,
-                    effect,
-                    power,
-                    toughness
-                  )
-                )
-              }
+              rootElement={new CardCanvasElement(card)}
             />
           }
         </div>

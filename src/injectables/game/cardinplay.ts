@@ -79,12 +79,10 @@ export class CardInPlay extends CanvasElement {
   }
 
   public override onMouseEnter() {
-    console.log("cardinplay onMouseEnter");
     CardInPlay.lastHoveredCard = this;
   }
 
   public override onClick() {
-    console.log("cardinplay onClick");
     this.game.onCardCast(this);
   }
 }

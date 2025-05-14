@@ -78,7 +78,6 @@ function App() {
   const [game, setGame] = useState<Game | undefined>(undefined);
 
   function quickPlay() {
-    console.log("quick play!");
     setGame(new Game());
   }
 

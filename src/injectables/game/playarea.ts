@@ -29,7 +29,7 @@ export class PlayArea extends CanvasElement {
         (1 + this.children.length) * Configure.CARD_WIDTH * SPACING;
       this.rd.scale = Math.max(1, necessaryWidth / this.rd.w);
       if (this.rd.scale > 1) {
-        console.log(`canvasScale: ${this.rd.scale}`);
+        console.log(`playArea canvasScale: ${this.rd.scale}`);
       }
     }
 
