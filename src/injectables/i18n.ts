@@ -27,6 +27,8 @@ export class I18n {
     "word-description": "Description",
     "word-effect": "Effect",
     "word-power": "Power",
+    "word-publish": "Publish",
+    "word-refresh": "Refresh",
     "word-template": "Template",
     "word-title": "Title",
     "word-toughness": "Toughness",

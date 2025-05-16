@@ -25,10 +25,10 @@ const NumberField = ({
 
   return (
     <div>
-      {label && <InputLabel id={labelId}>{label}</InputLabel>}
+      {label && <InputLabel htmlFor={labelId}>{label}</InputLabel>}
       <ButtonGroup>
         <Button
-          labelId={labelId}
+          id={labelId}
           onClick={() => {
             let newValue = (value ?? 0) + 1;
             if (!(maxValue !== undefined && newValue > maxValue)) {

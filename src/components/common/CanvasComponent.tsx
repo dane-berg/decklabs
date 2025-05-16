@@ -3,16 +3,14 @@ import { RootElement } from "../../injectables/render/canvaselement";
 import { Canvas } from "../../injectables/render/canvas";
 
 interface Inputs {
-  width?: number | string;
-  height?: number | string;
+  style?: any;
   aspectRatio?: number;
   backgroundImg?: string;
   rootElement?: RootElement;
 }
 
 const CanvasComponent = ({
-  width,
-  height,
+  style,
   aspectRatio,
   backgroundImg,
   rootElement,
@@ -64,18 +62,22 @@ const CanvasComponent = ({
 
   return errorString ? (
     <div
-      style={{
-        width: width ?? "100%",
-        height: height ?? "100%",
-      }}
+      style={
+        style ?? {
+          width: "100%",
+          height: "100%",
+        }
+      }
     >
       {errorString}
     </div>
   ) : (
     <div
       style={{
-        width: width ?? "100%",
-        height: height ?? "100%",
+        ...(style ?? {
+          width: "100%",
+          height: "100%",
+        }),
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

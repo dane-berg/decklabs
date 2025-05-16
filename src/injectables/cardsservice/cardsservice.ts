@@ -73,7 +73,7 @@ export class CardsService {
         const id = --this.lastLocalCardId;
         this.cards.set(id, new Card(id, localCardData));
       });
-      this.initPromise = this._findAll().then((cards) =>
+      this.initPromise = this._getAll().then((cards) =>
         cards.forEach((card) => this.cards.set(card.id, card))
       );
     }
@@ -81,7 +81,6 @@ export class CardsService {
   }
 
   static createCard(data: CardData): Card {
-    debugger;
     const id = --this.lastLocalCardId;
     console.log(`creating new card with id ${id} ...`);
     const newCard = new Card(id, data);
@@ -91,7 +90,9 @@ export class CardsService {
 
   private static getLocalCard(id: number): Card {
     if (id < this.lastLocalCardId || id >= 0) {
-      throw new Error("invalid local card id");
+      throw new Error(
+        `invalid local card id=${id} when lastLocalCardId=${this.lastLocalCardId}`
+      );
     }
     const card = this.cards.get(id);
     if (!card) {
@@ -112,13 +113,25 @@ export class CardsService {
 
   static async publishCard(card: Card): Promise<boolean> {
     const localCard = this.getLocalCard(card.id);
-    // TODO: send a request
-    const response = false;
-    if (response) {
-      // TODO: add the new id to this.aliases
+
+    const formData = new FormData();
+    formData.append("name", localCard.name);
+    formData.append("description", localCard.description);
+    formData.append("metadata", JSON.stringify(localCard.metadata));
+    formData.append("img", localCard.imgSrc);
+    try {
+      const response = await axios.post(`${Configure.url}cards`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log("Upload successful:", response.data);
+      // TODO: add the new id to this.aliases ?
       // TODO: updated created date ?
       return true;
-    } else {
+    } catch (error) {
+      console.error("Upload failed:", error.response?.data || error.message);
       return false;
     }
   }
@@ -152,7 +165,24 @@ export class CardsService {
     // TODO: await the response w/ card id etc, & add it to cards array
   }*/
 
-  private static async _findAll(): Promise<Card[]> {
+  /*static objectToFormData(obj: any) {
+    const formData = new FormData();
+  
+    Object.entries(obj).forEach(([key, value]) => {
+      if (value instanceof File || value instanceof Blob) {
+        formData.append(key, value);
+      } else if (typeof value === 'object' && value !== null) {
+        // Serialize objects (e.g., metadata)
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, String(value));
+      }
+    });
+  
+    return formData;
+  }*/
+
+  private static async _getAll(): Promise<Card[]> {
     try {
       const response = await axios.get(`${Configure.url}cards/`, {
         sort: "asc",
@@ -160,14 +190,20 @@ export class CardsService {
       console.log("findAll response:");
       console.log(response.data);
       return response.data.map((cardData) => {
-        // parse each image file
-        const uint8Array = new Uint8Array(cardData.img.buffer.data);
-        const blob = new Blob([uint8Array], { type: cardData.img.mimetype });
-        const file = new File([blob], cardData.img.name, {
-          type: cardData.img.mimetype,
-        });
-        // TODO: call the Card constructor
-        return { ...cardData, imgSrc: file };
+        if (cardData.img) {
+          // parse each image file
+          const uint8Array = new Uint8Array(cardData.img.buffer.data);
+          const blob = new Blob([uint8Array], { type: cardData.img.mimetype });
+          const file = new File([blob], cardData.img.name, {
+            type: cardData.img.mimetype,
+          });
+          return new Card(cardData.id, { ...cardData, imgSrc: file });
+        } else {
+          return new Card(cardData.id, {
+            ...cardData,
+            imgSrc: Configure.default_card_art_src,
+          });
+        }
       });
     } catch (e) {
       console.log(e);

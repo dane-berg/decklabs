@@ -6,6 +6,7 @@ import CanvasComponent from "./common/CanvasComponent";
 import { CardCanvasElement } from "../injectables/game/cardcanvaselement";
 import { Configure } from "../injectables/configure";
 import {
+  Button,
   FormControl,
   InputLabel,
   MenuItem,
@@ -26,6 +27,7 @@ import {
 import IconPicker from "./common/IconPicker";
 import NumberField from "./common/NumberField";
 import { CardsService } from "../injectables/cardsservice/cardsservice";
+import CardComponent from "./common/CardComponent";
 
 const tileStyles = {
   backgroundColor: "lightgrey",
@@ -90,11 +92,28 @@ const StudioPage = () => {
     toughness,
   ]);
 
+  function canPublish() {
+    return name !== defaultName && !!img;
+  }
+
+  function publish() {
+    CardsService.publishCard(card);
+  }
+
   // TODO: allow editing unpublished cards. When the current card is changed, update the other state via useEffect
-  // TODO: re-add the ability to publish cards
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <h2>{I18n.get("tab-studio")}</h2>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        <h2>{I18n.get("tab-studio")}</h2>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={publish}
+          disabled={!canPublish()}
+        >
+          {I18n.get("word-publish")}
+        </Button>
+      </div>
       <div
         style={{
           display: "flex",
@@ -231,10 +250,7 @@ const StudioPage = () => {
         <div style={tileStyles}>
           {
             // Card preview
-            <CanvasComponent
-              aspectRatio={Configure.CARD_HEIGHT / Configure.CARD_WIDTH}
-              rootElement={new CardCanvasElement(card)}
-            />
+            <CardComponent card={card} />
           }
         </div>
       </div>

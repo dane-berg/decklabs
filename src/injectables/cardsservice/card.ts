@@ -1,5 +1,6 @@
+import { Configure } from "../configure";
 import { loadOntoImage } from "../render/renderutil";
-import { ManaColorValue } from "./manacolor";
+import { defaultManaColor, ManaColorValue } from "./manacolor";
 import {
   defaultTemplateValue,
   Template,
@@ -7,19 +8,21 @@ import {
   TemplateValue,
 } from "./template";
 
-export type CardData = {
-  created?: string;
-  metadata?: Record<string, string>;
+export type StrictCardData = {
   name: string;
-  description?: string;
-  imgSrc?: File | string;
-  templateValue?: TemplateValue;
-  mana?: Partial<Record<ManaColorValue, number>>;
-  traits?: string;
-  effect?: string;
-  power?: number;
-  toughness?: number;
+  created: string;
+  metadata: Record<string, string>;
+  description: string;
+  imgSrc: File | string;
+  templateValue: TemplateValue;
+  mana: Partial<Record<ManaColorValue, number>>;
+  traits: string;
+  effect: string;
+  power: number | undefined;
+  toughness: number | undefined;
 };
+
+export type CardData = { name: string } & Partial<StrictCardData>;
 
 export class Card {
   private _created: string;
@@ -32,10 +35,7 @@ export class Card {
   }
 
   private async init() {
-    if (this.data.imgSrc) {
-      this.imgLoaded = await loadOntoImage(this._img, this.data.imgSrc);
-    }
-    // TODO: else use a default image
+    this.imgLoaded = await loadOntoImage(this._img, this.imgSrc);
   }
 
   /**
@@ -49,6 +49,10 @@ export class Card {
 
   public get created(): string {
     return this._created;
+  }
+
+  public get metadata(): Record<string, string> {
+    return this.data.metadata ?? {};
   }
 
   public getMetadata(key: string): string | undefined {
@@ -65,6 +69,10 @@ export class Card {
 
   public get img(): HTMLImageElement | undefined {
     return this.imgLoaded ? this._img : undefined;
+  }
+
+  public get imgSrc(): File | string {
+    return this.data.imgSrc ?? Configure.default_card_art_src;
   }
 
   public get template(): Template {

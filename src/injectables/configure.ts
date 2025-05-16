@@ -17,4 +17,5 @@ export class Configure {
   public static readonly max_mana_value = 9;
   public static readonly max_pt_value = 9;
   public static readonly min_pt_value = -9;
+  public static readonly default_card_art_src = "colorless_mana.png";
 }
