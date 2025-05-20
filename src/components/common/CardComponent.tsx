@@ -1,6 +1,6 @@
 import { Card } from "../../injectables/cardsservice/card";
 import { Configure } from "../../injectables/configure";
-import { CardCanvasElement } from "../../injectables/game/cardcanvaselement";
+import { CardElement } from "../../injectables/game/cardelement";
 import CanvasComponent from "./CanvasComponent";
 
 interface Inputs {
@@ -13,7 +13,7 @@ const CardComponent = ({ style, card }: Inputs) => {
     <CanvasComponent
       style={style}
       aspectRatio={Configure.CARD_HEIGHT / Configure.CARD_WIDTH}
-      rootElement={new CardCanvasElement(card)}
+      rootElement={new CardElement(card)}
     />
   );
 };

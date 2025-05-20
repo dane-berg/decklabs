@@ -1,6 +1,6 @@
 import { Configure } from "../configure";
 import { loadOntoImage } from "../render/renderutil";
-import { defaultManaColor, ManaColorValue } from "./manacolor";
+import { isManaColorValue, ManaColors, ManaColorValue } from "./manacolor";
 import {
   defaultTemplateValue,
   Template,
@@ -16,6 +16,7 @@ export type StrictCardData = {
   imgSrc: File | string;
   templateValue: TemplateValue;
   mana: Partial<Record<ManaColorValue, number>>;
+  manaString: string;
   traits: string;
   effect: string;
   power: number | undefined;
@@ -23,6 +24,8 @@ export type StrictCardData = {
 };
 
 export type CardData = { name: string } & Partial<StrictCardData>;
+
+const manaDelimiter = ",";
 
 export class Card {
   private _created: string;
@@ -75,12 +78,32 @@ export class Card {
     return this.data.imgSrc ?? Configure.default_card_art_src;
   }
 
+  public get templateValue(): TemplateValue {
+    return this.data.templateValue ?? defaultTemplateValue;
+  }
+
   public get template(): Template {
-    return Templates[this.data.templateValue ?? defaultTemplateValue];
+    return Templates[this.templateValue];
   }
 
   public get mana(): Partial<Record<ManaColorValue, number>> {
-    return this.data.mana ?? {};
+    if (this.data.mana) {
+      return this.data.mana;
+    } else if (this.data.manaString) {
+      return parseManaString(this.data.manaString);
+    } else {
+      return {};
+    }
+  }
+
+  public get manaString(): string {
+    if (this.data.manaString) {
+      return this.data.manaString;
+    } else if (this.data.mana) {
+      return manaToString(this.data.mana);
+    } else {
+      return "";
+    }
   }
 
   public get traits(): string {
@@ -98,4 +121,37 @@ export class Card {
   public get toughness(): number | undefined {
     return this.data.toughness;
   }
+
+  public get isPublished(): boolean {
+    return this.id > 0;
+  }
+
+  public get isModifiable(): boolean {
+    return this.id < 0;
+  }
+}
+
+export function manaToString(
+  manaObj: Partial<Record<ManaColorValue, number>>
+): string {
+  const mana: string[] = [];
+  (Object.keys(ManaColors) as ManaColorValue[]).forEach((manaColorValue) => {
+    const n = manaObj[manaColorValue];
+    if (n) {
+      mana.push(...Array(n).fill(manaColorValue));
+    }
+  });
+  return mana.join(manaDelimiter);
+}
+
+export function parseManaString(
+  manaString: string
+): Partial<Record<ManaColorValue, number>> {
+  const mana: Partial<Record<ManaColorValue, number>> = {};
+  manaString.split(manaDelimiter).forEach((manaColorValue) => {
+    if (isManaColorValue(manaColorValue)) {
+      mana[manaColorValue] = 1 + (mana[manaColorValue] ?? 0);
+    }
+  });
+  return mana;
 }

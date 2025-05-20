@@ -37,6 +37,7 @@ const LibraryPage = () => {
 
   useEffect(() => refresh(), []);
 
+  // TODO: card filtering
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>

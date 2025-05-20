@@ -4,7 +4,7 @@ import { Configure } from "../configure";
 import { RootElement } from "../render/canvaselement";
 import { Rect, wrapText } from "../render/renderutil";
 
-export class CardCanvasElement extends RootElement {
+export class CardElement extends RootElement {
   constructor(public card: Card) {
     super({
       x: 0,

@@ -2,7 +2,7 @@ import axios from "axios";
 import { Card, CardData } from "./card";
 import { Configure } from "../configure";
 import { TemplateValue } from "./template";
-import { ManaColorValue } from "./manacolor";
+import { ManaColors, ManaColorValue } from "./manacolor";
 
 // singleton injectable that handles all cards
 export class CardsService {
@@ -66,6 +66,7 @@ export class CardsService {
   private static cards = new Map<number, Card>();
   private static lastLocalCardId: number = 0; // decrements
   private static initPromise?: Promise<void>;
+  // TODO: lastModifiedCard
 
   private static async init() {
     if (!this.initPromise) {
@@ -116,19 +117,39 @@ export class CardsService {
 
     const formData = new FormData();
     formData.append("name", localCard.name);
-    formData.append("description", localCard.description);
     formData.append("metadata", JSON.stringify(localCard.metadata));
+    formData.append("description", localCard.description);
     formData.append("img", localCard.imgSrc);
+    formData.append("templateValue", localCard.templateValue);
+    formData.append("manaString", localCard.manaString);
+    formData.append("traits", localCard.traits);
+    formData.append("effect", localCard.effect);
+    if (localCard.power !== undefined) {
+      formData.append("power", `${localCard.power}`);
+    }
+    if (localCard.toughness !== undefined) {
+      formData.append("toughness", `${localCard.toughness}`);
+    }
+
     try {
       const response = await axios.post(`${Configure.url}cards`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+      console.log(`Upload successful: ${response.data}`);
 
-      console.log("Upload successful:", response.data);
-      // TODO: add the new id to this.aliases ?
-      // TODO: updated created date ?
+      if (response.data.id <= 0) {
+        throw new Error(`expected positive id, but got ${response.data.id}`);
+      }
+      if (this.cards.has(response.data.id)) {
+        throw new Error(
+          `expected unique id, but got collision ${response.data.id}`
+        );
+      }
+      const newCard = new Card(response.data.id, response.data);
+      this.cards.set(response.data.id, newCard);
+      this.cards.delete(localCard.id);
       return true;
     } catch (error) {
       console.error("Upload failed:", error.response?.data || error.message);
@@ -136,12 +157,7 @@ export class CardsService {
     }
   }
 
-  /**@Get('standard')
-    findStandard() {
-      return this.cardsService.findStandard();
-    }
-  
-    @Get(':id')
+  /**@Get(':id')
     findCard(@Param() id: string) {
       console.log(id);
       const card = this.cardsService.findCard(id);
@@ -150,20 +166,6 @@ export class CardsService {
       }
       return card;
     }*/
-
-  /*static async create(
-    name: string,
-    imgFile: File,
-    onUploadProgress?: (progressEvent: any) => void
-  ) {
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("img", imgFile);
-    await axios.post(`${Configure.url}cards/`, formData, {
-      onUploadProgress: onUploadProgress,
-    });
-    // TODO: await the response w/ card id etc, & add it to cards array
-  }*/
 
   /*static objectToFormData(obj: any) {
     const formData = new FormData();
@@ -187,7 +189,7 @@ export class CardsService {
       const response = await axios.get(`${Configure.url}cards/`, {
         sort: "asc",
       } as any);
-      console.log("findAll response:");
+      console.log("getAllCards response:");
       console.log(response.data);
       return response.data.map((cardData) => {
         if (cardData.img) {

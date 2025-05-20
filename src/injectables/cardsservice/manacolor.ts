@@ -64,3 +64,6 @@ export const ManaColors: Record<ManaColorValue, ManaColor> = {
   ),
   red: new ManaColor(ManaColorValue.Red, "color-red", "red_mana.png", 5),
 };
+export function isManaColorValue(value: string): value is ManaColorValue {
+  return Object.keys(ManaColors).includes(value);
+}

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import InputFileUpload from "./common/InputFileUpload";
 import { Card } from "../injectables/cardsservice/card";
 import CanvasComponent from "./common/CanvasComponent";
-import { CardCanvasElement } from "../injectables/game/cardcanvaselement";
+import { CardElement } from "../injectables/game/cardelement";
 import { Configure } from "../injectables/configure";
 import {
   Button,
@@ -93,6 +93,7 @@ const StudioPage = () => {
   ]);
 
   function canPublish() {
+    // TODO: ensure card color makes sense w/ mana colors
     return name !== defaultName && !!img;
   }
 

@@ -11,7 +11,7 @@ import {
 } from "../render/renderutil";
 import { Card } from "../cardsservice/card";
 import { Game } from "./game";
-import { CardCanvasElement } from "./cardcanvaselement";
+import { CardElement } from "./cardelement";
 
 const NOISE_SCALE = 0.04;
 
@@ -25,7 +25,7 @@ export class CardInPlay extends CanvasElement {
     public noiseScale: number = NOISE_SCALE
   ) {
     super();
-    this.addChild(new CardCanvasElement(this.card));
+    this.addChild(new CardElement(this.card));
   }
 
   public get rd(): RenderData {
