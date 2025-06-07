@@ -32,13 +32,19 @@ export class Card {
   private _img = new Image();
   private imgLoaded: boolean = false;
 
-  constructor(public readonly id: number, private data: CardData) {
+  constructor(
+    public readonly id: number,
+    private data: CardData
+  ) {
     this._created = this.data.created ?? new Date().toISOString();
     this.init();
   }
 
   private async init() {
     this.imgLoaded = await loadOntoImage(this._img, this.imgSrc);
+    if (!this.id) {
+      throw new Error("card id must not be undefined");
+    }
   }
 
   /**
@@ -75,7 +81,7 @@ export class Card {
   }
 
   public get imgSrc(): File | string {
-    return this.data.imgSrc ?? Configure.default_card_art_src;
+    return this.data.imgSrc || Configure.default_card_art_src;
   }
 
   public get templateValue(): TemplateValue {

@@ -43,30 +43,60 @@ const tileStyles = {
 
 const StudioPage = () => {
   const defaultName = "Untitled Card";
-  const [name, setName] = useState(defaultName);
-  const [templateValue, setTemplateValue] =
-    useState<TemplateValue>(defaultTemplateValue);
-  const [mana, setMana] = useState<Partial<Record<ManaColorValue, number>>>({});
-  const [img, setImg] = useState<File | undefined>(undefined);
-  const [traits, setTraits] = useState("");
-  const [effect, setEffect] = useState("");
-  const [description, setDescription] = useState("");
-  const [power, setPower] = useState<number | undefined>(undefined);
-  const [toughness, setToughness] = useState<number | undefined>(undefined);
-
   const [card, setCard] = useState<Card>(() =>
-    CardsService.createCard({
-      name: name,
-      templateValue: templateValue,
-      mana: mana,
-      imgSrc: img,
-      traits: traits,
-      effect: effect,
-      description: description,
-      power: power,
-      toughness: toughness,
+    CardsService.getLastModifiedCard({
+      name: defaultName,
+      templateValue: defaultTemplateValue,
+      mana: {},
+      imgSrc: Configure.default_card_art_src,
+      traits: "",
+      effect: "",
+      description: "",
     })
   );
+
+  const [name, setName] = useState(card.name);
+  const [templateValue, setTemplateValue] = useState<TemplateValue>(
+    card.templateValue
+  );
+  const [mana, setMana] = useState<Partial<Record<ManaColorValue, number>>>(
+    card.mana
+  );
+  const [img, setImg] = useState<File | undefined>(
+    typeof card.imgSrc === "string" ? undefined : card.imgSrc
+  );
+  const [traits, setTraits] = useState(card.traits);
+  const [effect, setEffect] = useState(card.effect);
+  const [description, setDescription] = useState(card.description);
+  const [power, setPower] = useState<number | undefined>(card.power);
+  const [toughness, setToughness] = useState<number | undefined>(
+    card.toughness
+  );
+
+  function loadCard(card: Card) {
+    setName(card.name);
+    setTemplateValue(card.templateValue);
+    setMana(card.mana);
+    setImg(typeof card.imgSrc === "string" ? undefined : card.imgSrc);
+    setTraits(card.traits);
+    setEffect(card.effect);
+    setDescription(card.description);
+    setPower(card.power);
+    setToughness(card.toughness);
+  }
+
+  function canPublish() {
+    // TODO: ensure card color makes sense w/ mana colors
+    return name !== defaultName && !!img;
+  }
+
+  function publish() {
+    CardsService.publishCard(card);
+  }
+
+  useEffect(() => {
+    //loadCard(card);
+  }, []);
 
   useEffect(() => {
     CardsService.updateCard(card.id, {
@@ -91,15 +121,6 @@ const StudioPage = () => {
     power,
     toughness,
   ]);
-
-  function canPublish() {
-    // TODO: ensure card color makes sense w/ mana colors
-    return name !== defaultName && !!img;
-  }
-
-  function publish() {
-    CardsService.publishCard(card);
-  }
 
   // TODO: allow editing unpublished cards. When the current card is changed, update the other state via useEffect
   return (

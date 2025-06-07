@@ -66,7 +66,7 @@ export class CardsService {
   private static cards = new Map<number, Card>();
   private static lastLocalCardId: number = 0; // decrements
   private static initPromise?: Promise<void>;
-  // TODO: lastModifiedCard
+  private static lastModifiedCard?: Card;
 
   private static async init() {
     if (!this.initPromise) {
@@ -79,6 +79,17 @@ export class CardsService {
       );
     }
     return this.initPromise;
+  }
+
+  static getLastModifiedCard(fallbackCardData: CardData): Card {
+    if (
+      !this.lastModifiedCard ||
+      !this.lastModifiedCard.isModifiable ||
+      !this.cards.has(this.lastModifiedCard.id)
+    ) {
+      this.lastModifiedCard = this.createCard(fallbackCardData);
+    }
+    return this.lastModifiedCard;
   }
 
   static createCard(data: CardData): Card {
@@ -137,18 +148,21 @@ export class CardsService {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log(`Upload successful: ${response.data}`);
+      const cardData = response.data.data;
+      console.log(`Upload successful`);
+      console.log(cardData);
 
-      if (response.data.id <= 0) {
-        throw new Error(`expected positive id, but got ${response.data.id}`);
+      if (cardData.id === undefined) {
+        throw new Error(`received id must not be undefined`);
       }
-      if (this.cards.has(response.data.id)) {
-        throw new Error(
-          `expected unique id, but got collision ${response.data.id}`
-        );
+      if (cardData.id <= 0) {
+        throw new Error(`expected positive id, but got ${cardData.id}`);
       }
-      const newCard = new Card(response.data.id, response.data);
-      this.cards.set(response.data.id, newCard);
+      if (this.cards.has(cardData.id)) {
+        throw new Error(`expected unique id, but got collision ${cardData.id}`);
+      }
+      const newCard = new Card(cardData.id, cardData);
+      this.cards.set(cardData.id, newCard);
       this.cards.delete(localCard.id);
       return true;
     } catch (error) {
@@ -167,23 +181,6 @@ export class CardsService {
       return card;
     }*/
 
-  /*static objectToFormData(obj: any) {
-    const formData = new FormData();
-  
-    Object.entries(obj).forEach(([key, value]) => {
-      if (value instanceof File || value instanceof Blob) {
-        formData.append(key, value);
-      } else if (typeof value === 'object' && value !== null) {
-        // Serialize objects (e.g., metadata)
-        formData.append(key, JSON.stringify(value));
-      } else {
-        formData.append(key, String(value));
-      }
-    });
-  
-    return formData;
-  }*/
-
   private static async _getAll(): Promise<Card[]> {
     try {
       const response = await axios.get(`${Configure.url}cards/`, {
@@ -191,22 +188,7 @@ export class CardsService {
       } as any);
       console.log("getAllCards response:");
       console.log(response.data);
-      return response.data.map((cardData) => {
-        if (cardData.img) {
-          // parse each image file
-          const uint8Array = new Uint8Array(cardData.img.buffer.data);
-          const blob = new Blob([uint8Array], { type: cardData.img.mimetype });
-          const file = new File([blob], cardData.img.name, {
-            type: cardData.img.mimetype,
-          });
-          return new Card(cardData.id, { ...cardData, imgSrc: file });
-        } else {
-          return new Card(cardData.id, {
-            ...cardData,
-            imgSrc: Configure.default_card_art_src,
-          });
-        }
-      });
+      return response.data.map((cardData) => new Card(cardData.id, cardData));
     } catch (e) {
       console.log(e);
       return [];

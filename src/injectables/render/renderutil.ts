@@ -170,7 +170,7 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
 
 export function loadOntoImage(
   img: HTMLImageElement,
-  src: File | string
+  src: string | File
 ): Promise<boolean> {
   if (typeof src === "string") {
     return new Promise((resolve, reject) => {
