@@ -74,6 +74,7 @@ const StudioPage = () => {
   );
 
   function loadCard(card: Card) {
+    setCard(card);
     setName(card.name);
     setTemplateValue(card.templateValue);
     setMana(card.mana);
@@ -90,13 +91,21 @@ const StudioPage = () => {
     return name !== defaultName && !!img;
   }
 
-  function publish() {
-    CardsService.publishCard(card);
+  async function publish() {
+    if (await CardsService.publishCard(card)) {
+      loadCard(
+        CardsService.createCard({
+          name: defaultName,
+          templateValue: defaultTemplateValue,
+          mana: {},
+          imgSrc: Configure.default_card_art_src,
+          traits: "",
+          effect: "",
+          description: "",
+        })
+      );
+    }
   }
-
-  useEffect(() => {
-    //loadCard(card);
-  }, []);
 
   useEffect(() => {
     CardsService.updateCard(card.id, {

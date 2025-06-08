@@ -41,6 +41,7 @@ export class CardElement extends RootElement {
       );
 
       // Mana
+      // TODO: Use numbers to decrease the size of the mana cost
       const manaImgs: (HTMLImageElement | undefined)[] = (
         Object.keys(ManaColors) as ManaColorValue[]
       ).flatMap((colorValue: ManaColorValue) => {

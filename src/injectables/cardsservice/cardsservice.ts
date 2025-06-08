@@ -1,68 +1,9 @@
 import axios from "axios";
 import { Card, CardData } from "./card";
 import { Configure } from "../configure";
-import { TemplateValue } from "./template";
-import { ManaColors, ManaColorValue } from "./manacolor";
 
 // singleton injectable that handles all cards
 export class CardsService {
-  private static debugCards: CardData[] = [
-    {
-      name: "Colorless Template",
-      description: "weooweeoo",
-      imgSrc: "colorless_mana.png",
-      templateValue: TemplateValue.Gold,
-      mana: { [ManaColorValue.Colorless]: 1 },
-      traits: "Weird",
-    },
-    {
-      name: "White Template",
-      imgSrc: "white_mana.png",
-      templateValue: TemplateValue.White,
-      mana: { [ManaColorValue.Colorless]: 1, [ManaColorValue.White]: 1 },
-      traits: "Useless",
-      power: 0,
-      toughness: 0,
-    },
-    {
-      name: "Blue Template",
-      imgSrc: "blue_mana.png",
-      templateValue: TemplateValue.Blue,
-      mana: { [ManaColorValue.Blue]: 3 },
-      traits: "Shield",
-      power: 0,
-      toughness: 1,
-    },
-    {
-      name: "Black Template",
-      description: "rawr",
-      imgSrc: "black_mana.png",
-      templateValue: TemplateValue.Black,
-      mana: { [ManaColorValue.Black]: 4 },
-      traits: "Smol Boi",
-      power: 2,
-      toughness: 2,
-    },
-    {
-      name: "Red Template",
-      description: "ssssssssssss",
-      imgSrc: "red_mana.png",
-      templateValue: TemplateValue.Red,
-      mana: { [ManaColorValue.Red]: 5 },
-      traits: "Vampire",
-      power: 3,
-      toughness: 3,
-    },
-    {
-      name: "Green Template",
-      imgSrc: "green_mana.png",
-      templateValue: TemplateValue.Green,
-      mana: { [ManaColorValue.Green]: 6 },
-      traits: "Big Boi",
-      power: 4,
-      toughness: 4,
-    },
-  ];
   private static cards = new Map<number, Card>();
   private static lastLocalCardId: number = 0; // decrements
   private static initPromise?: Promise<void>;
@@ -70,10 +11,6 @@ export class CardsService {
 
   private static async init() {
     if (!this.initPromise) {
-      this.debugCards.forEach((localCardData) => {
-        const id = --this.lastLocalCardId;
-        this.cards.set(id, new Card(id, localCardData));
-      });
       this.initPromise = this._getAll().then((cards) =>
         cards.forEach((card) => this.cards.set(card.id, card))
       );
@@ -188,7 +125,9 @@ export class CardsService {
       } as any);
       console.log("getAllCards response:");
       console.log(response.data);
-      return response.data.map((cardData) => new Card(cardData.id, cardData));
+      return response.data.map(
+        (cardData: CardData) => new Card(cardData.id, cardData)
+      );
     } catch (e) {
       console.log(e);
       return [];
