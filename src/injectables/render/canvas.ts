@@ -36,7 +36,9 @@ export class Canvas {
 
   private static unDirtyZOrder() {
     if (this.zOrderIsDirty) {
+      // sort elements according to z order
       this.elements.sort((a, b) => b.zIndex - a.zIndex);
+      // maintain parent-child relationships among interactive elements
       this.elements.forEach((parent) =>
         parent.children.forEach((child) => {
           if (!parent.zIndex && parent.zIndex !== 0) {
@@ -45,6 +47,7 @@ export class Canvas {
           child.parent = parent;
         })
       );
+      // maintain parent-child relationships among non-interactive elements
       this.nonInteractiveElements.forEach((parent) =>
         parent.children.forEach((child) => {
           if (!parent.zIndex && parent.zIndex !== 0) {
@@ -53,6 +56,7 @@ export class Canvas {
           child.parent = parent;
         })
       );
+      // un-dirty z order
       this.zOrderIsDirty = false;
     }
   }
@@ -88,18 +92,18 @@ export class Canvas {
 
   private static handleMouseMove(pos: Position) {
     this.unDirtyZOrder();
-    let newHoverTarget = this.elements.find((e) => {
+    let newHoverTarget: CanvasElement | undefined = this.elements.find((e) => {
       if (!e.zIndex) {
         throw new Error(
           "NonInteractive element in CanvasEventHandler.elements"
         );
       }
-      return !e.zIndex || e.contains(pos);
+      return e.contains(pos);
     });
-    if (newHoverTarget?.zIndex === ZIndex.NonInteractive) {
-      newHoverTarget = undefined;
+    DEBUG_MODE && console.log(`newHoverTarget = ${newHoverTarget?.logName()}`);
+    if (!newHoverTarget && this.currentHoverTarget?.zIndex) {
+      newHoverTarget = this.currentHoverTarget;
     }
-
     if (newHoverTarget !== this.currentHoverTarget) {
       newHoverTarget?.onMouseEnter(pos);
     }
@@ -108,6 +112,9 @@ export class Canvas {
 
   private static handleClick(pos: Position) {
     this.handleMouseMove(pos);
+    if (DEBUG_MODE) {
+      console.log(`clicked at position ${pos.x}, ${pos.y}`);
+    }
     this.currentHoverTarget?.onClick(pos);
   }
 
@@ -143,7 +150,9 @@ export class Canvas {
         ctx.strokeRect(0, 0, e.rd.w, e.rd.h);
       }
     }
-    e.children.forEach((child) => this.renderElement(ctx, child));
+    [...e.children]
+      .sort((a, b) => a.zIndex - b.zIndex)
+      .forEach((child) => this.renderElement(ctx, child));
     ctx.restore();
   }
 }

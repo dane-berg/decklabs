@@ -20,10 +20,10 @@ export class GameElement extends RootElement {
       h: this.rd.h / 2 - Configure.CARD_HEIGHT * Configure.NONOVERLAP_RATIO,
     });
     this.game.playerHand.update({
-      x: this.rd.w / 4,
-      y: this.rd.h,
-      w: this.rd.w / 2,
-      h: 0,
+      x: 0,
+      y: this.rd.h - Configure.CARD_HEIGHT,
+      w: this.rd.w,
+      h: Configure.CARD_HEIGHT,
     });
 
     if (!this.game.initialized) {

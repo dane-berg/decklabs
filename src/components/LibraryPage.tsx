@@ -1,10 +1,10 @@
 import { I18n } from "../injectables/i18n";
 import { useEffect, useState } from "react";
-import CardComponent from "./common/CardComponent";
 import { CardsService } from "../injectables/cardsservice/cardsservice";
 import { Card } from "../injectables/cardsservice/card";
 import { Button } from "@mui/material";
-import { Configure } from "../injectables/configure";
+import CanvasComponent from "./common/CanvasComponent";
+import { LibraryElement } from "../injectables/game/libraryelement";
 
 enum State {
   Idle = "idle",
@@ -22,6 +22,8 @@ const LibraryPage = () => {
     CardsService.getAll()
       .then((cards) => {
         setCards(cards);
+        console.log("library cards");
+        console.log(cards);
         setState(State.Success);
       })
       .catch((_err) => setState(State.Error));
@@ -49,27 +51,7 @@ const LibraryPage = () => {
       )}
       {(state === State.Success ||
         (state === State.Loading && cards.length > 0)) && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: "1rem",
-            height: "100%",
-            backgroundColor: "lightgrey",
-          }}
-        >
-          {cards.map((card: Card) => (
-            <CardComponent
-              style={{
-                width: Configure.CARD_WIDTH,
-                height: Configure.CARD_HEIGHT,
-              }}
-              card={card}
-              key={card.id}
-            />
-          ))}
-        </div>
+        <CanvasComponent rootElement={new LibraryElement(cards)} />
       )}
       {state === State.Error && <p>{I18n.get("library-error")}</p>}
     </div>

@@ -1,5 +1,12 @@
 import { Canvas } from "./canvas";
-import { Rect, Position, Vector, subtract, RenderData } from "./renderutil";
+import {
+  Rect,
+  Position,
+  Vector,
+  subtract,
+  RenderData,
+  scale,
+} from "./renderutil";
 
 export enum ZIndex {
   NonInteractive = 0,
@@ -42,8 +49,11 @@ export class CanvasElement {
 
   // do not override
   public transform(pos: Position): Vector {
-    // TODO: account for scale & rotation
-    return subtract(this.parent ? this.parent.transform(pos) : pos, this.rd);
+    // TODO: account for rotation
+    return scale(
+      subtract(this.parent ? this.parent.transform(pos) : pos, this.rd),
+      1 / (this.rd.scale || 1)
+    );
   }
 
   public contains(pos: Position): boolean {
@@ -84,6 +94,10 @@ export class CanvasElement {
   public onMouseEnter(_pos: Position): void | Promise<void> {}
 
   public onClick(_pos: Position): void | Promise<void> {}
+
+  public logName(): string {
+    return this.constructor.name;
+  }
 }
 
 export class RootElement extends CanvasElement {

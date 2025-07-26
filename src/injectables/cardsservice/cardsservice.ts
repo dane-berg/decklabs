@@ -55,9 +55,11 @@ export class CardsService {
     this.getLocalCard(id).update(data);
   }
 
-  static async getAll(limit: number = 100): Promise<Card[]> {
+  static async getAll(): Promise<Card[]> {
     await this.init();
-    return [...this.cards.values()].slice(0, limit);
+    return [...this.cards.values()].filter(
+      (card) => card !== this.getLastModifiedCard({ name: "Untitled Card" })
+    );
   }
 
   static async publishCard(card: Card): Promise<boolean> {

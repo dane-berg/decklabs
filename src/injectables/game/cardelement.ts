@@ -5,6 +5,8 @@ import { RootElement } from "../render/canvaselement";
 import { Rect, wrapText } from "../render/renderutil";
 
 export class CardElement extends RootElement {
+  public static lastHoveredCard?: CardElement;
+
   constructor(public card: Card) {
     super({
       x: 0,
@@ -29,7 +31,7 @@ export class CardElement extends RootElement {
     if (this.card.img && this.card.template.img) {
       // Art
       // TODO: crop the art to preserve aspect ratio
-      ctx.drawImage(this.card.img, 9, 20, 108, 76);
+      ctx.drawImage(this.card.img, 9, 20, 108, 78);
 
       // Template
       ctx.drawImage(
@@ -108,5 +110,13 @@ export class CardElement extends RootElement {
         ctx.fillText(text, 109 - text.length, 165.5);
       }
     }
+  }
+
+  public override onMouseEnter() {
+    CardElement.lastHoveredCard = this;
+  }
+
+  public override logName(): string {
+    return `CardElement ${this.card.name}`;
   }
 }

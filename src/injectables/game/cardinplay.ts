@@ -16,7 +16,6 @@ import { CardElement } from "./cardelement";
 const NOISE_SCALE = 0.04;
 
 export class CardInPlay extends CanvasElement {
-  public static lastHoveredCard?: CardInPlay;
   public transformData: NoisyTransformData = new NoisyTransformData();
 
   constructor(
@@ -78,11 +77,11 @@ export class CardInPlay extends CanvasElement {
       this.noiseScale * smoothing + noiseScale * (1 - smoothing);
   }
 
-  public override onMouseEnter() {
-    CardInPlay.lastHoveredCard = this;
-  }
-
   public override onClick() {
     this.game.onCardCast(this);
+  }
+
+  public override onMouseEnter(pos: Position) {
+    this.children[0]?.onMouseEnter(pos);
   }
 }
