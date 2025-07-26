@@ -36,7 +36,7 @@ export class Canvas {
 
   private static unDirtyZOrder() {
     if (this.zOrderIsDirty) {
-      // sort elements according to z order
+      // sort elements in descending z order
       this.elements.sort((a, b) => b.zIndex - a.zIndex);
       // maintain parent-child relationships among interactive elements
       this.elements.forEach((parent) =>
@@ -101,9 +101,6 @@ export class Canvas {
       return e.contains(pos);
     });
     DEBUG_MODE && console.log(`newHoverTarget = ${newHoverTarget?.logName()}`);
-    if (!newHoverTarget && this.currentHoverTarget?.zIndex) {
-      newHoverTarget = this.currentHoverTarget;
-    }
     if (newHoverTarget !== this.currentHoverTarget) {
       newHoverTarget?.onMouseEnter(pos);
     }
@@ -134,22 +131,27 @@ export class Canvas {
 
   public static renderElement(ctx: CanvasRenderingContext2D, e: CanvasElement) {
     ctx.save();
+    // translate to the center of the element
     ctx.translate(e.rd.x + e.rd.w / 2, e.rd.y + e.rd.h / 2);
+    // apply rotation & scale
     if (e.rd.rot) {
       ctx.rotate(e.rd.rot);
     }
     if (e.rd.scale !== 1) {
       ctx.scale(e.rd.scale, e.rd.scale);
     }
+    // translate to the top right corner of the element
     ctx.translate((-0.5 * e.rd.w) / e.rd.scale, (-0.5 * e.rd.h) / e.rd.scale);
     if (e.rd.w && e.rd.h && e.rd.scale) {
+      // draw the element
       e.draw(ctx);
       if (DEBUG_MODE) {
-        ctx.strokeStyle = e.zIndex ? "cyan" : "black";
+        ctx.strokeStyle = e.zIndex ? "cyan" : "white";
         ctx.lineWidth = e.zIndex ? 4 : 1;
         ctx.strokeRect(0, 0, e.rd.w, e.rd.h);
       }
     }
+    // render the children in ascending zOrder without modifying the underlying order
     [...e.children]
       .sort((a, b) => a.zIndex - b.zIndex)
       .forEach((child) => this.renderElement(ctx, child));

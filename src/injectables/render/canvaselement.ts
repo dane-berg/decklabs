@@ -17,6 +17,7 @@ export enum ZIndex {
 }
 
 export class CanvasElement {
+  // TODO: add abstract update() method
   // do not modify these properties manually
   public children: CanvasElement[] = [];
   public parent?: CanvasElement;
