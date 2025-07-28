@@ -8,6 +8,8 @@ import {
   TemplateValue,
 } from "./template";
 
+export type CardId = number;
+
 export type StrictCardData = {
   name: string;
   created: string;
@@ -33,7 +35,7 @@ export class Card {
   private imgLoaded: boolean = false;
 
   constructor(
-    public readonly id: number,
+    public readonly id: CardId,
     private data: CardData
   ) {
     this._created = this.data.created ?? new Date().toISOString();

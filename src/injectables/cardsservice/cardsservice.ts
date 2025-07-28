@@ -1,11 +1,11 @@
 import axios from "axios";
-import { Card, CardData } from "./card";
+import { Card, CardData, CardId } from "./card";
 import { Configure } from "../configure";
 
 // singleton injectable that handles all cards
 export class CardsService {
-  private static cards = new Map<number, Card>();
-  private static lastLocalCardId: number = 0; // decrements
+  private static cards = new Map<CardId, Card>();
+  private static lastLocalCardId: CardId = 0; // decrements
   private static initPromise?: Promise<void>;
   private static lastModifiedCard?: Card;
 
@@ -37,7 +37,12 @@ export class CardsService {
     return newCard;
   }
 
-  private static getLocalCard(id: number): Card {
+  public static async getCard(id: CardId): Promise<Card | undefined> {
+    await this.init();
+    return this.cards.get(id);
+  }
+
+  private static getLocalCard(id: CardId): Card {
     if (id < this.lastLocalCardId || id >= 0) {
       throw new Error(
         `invalid local card id=${id} when lastLocalCardId=${this.lastLocalCardId}`
@@ -50,7 +55,7 @@ export class CardsService {
     return card;
   }
 
-  static updateCard(id: number, data: CardData) {
+  static updateCard(id: CardId, data: CardData) {
     console.log(`updating card with id ${id} ...`);
     this.getLocalCard(id).update(data);
   }

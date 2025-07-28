@@ -117,6 +117,6 @@ export class CardElement extends RootElement {
   }
 
   public override logName(): string {
-    return `CardElement ${this.card.name}`;
+    return `CardElement "${this.card.name}"`;
   }
 }

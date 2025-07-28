@@ -11,10 +11,14 @@ import {
 import { Card } from "../cardsservice/card";
 import { Game } from "./game";
 import { CardElement } from "./cardelement";
+import { CardInstanceId } from "./gameaction";
 
 const NOISE_SCALE = 0.04;
 
 export class CardInPlay extends CanvasElement {
+  public static lastInstanceId: CardInstanceId = 0;
+
+  public instanceId: CardInstanceId = ++CardInPlay.lastInstanceId;
   public transformData: NoisyTransformData = new NoisyTransformData();
 
   constructor(
@@ -66,7 +70,7 @@ export class CardInPlay extends CanvasElement {
   }
 
   public override onClick() {
-    this.game.onCardCast(this);
+    this.game.onCardClick(this);
   }
 
   public override onMouseEnter(pos: Position) {
@@ -74,6 +78,6 @@ export class CardInPlay extends CanvasElement {
   }
 
   public override logName(): string {
-    return `CardInPlay ${this.card.name}`;
+    return `CardInPlay "${this.card.name}"`;
   }
 }

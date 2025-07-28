@@ -70,7 +70,11 @@ export class CanvasElement {
     zIndex: number | undefined = undefined,
     preservePosition: boolean = true
   ) {
+    if (e.parent) {
+      e.parent.removeChild(e);
+    }
     this.children.push(e);
+    e.parent = this;
     if (preservePosition) {
       // TODO: account for scale & rotation
       e.rd = { ...e.rd, x: e.rd.x - this.rd.x, y: e.rd.y - this.rd.y };
@@ -86,10 +90,16 @@ export class CanvasElement {
         e.rd = { ...e.rd, x: e.rd.x + this.rd.x, y: e.rd.y + this.rd.y };
       }
       this.children.splice(index, 1);
+      e.parent = undefined;
       e.zIndex = ZIndex.NonInteractive;
     } else {
       throw new Error("removeChild received an orphan");
     }
+  }
+
+  public setChildren(children: CanvasElement[]) {
+    this.children.forEach((c) => this.removeChild(c));
+    children.forEach((c) => this.addChild(c));
   }
 
   public onMouseEnter(_pos: Position): void | Promise<void> {}
