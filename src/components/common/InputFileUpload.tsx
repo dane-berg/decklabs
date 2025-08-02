@@ -3,6 +3,7 @@ import Button from "@mui/material/Button";
 import UploadIcon from "@mui/icons-material/Upload";
 import { I18n } from "../../injectables/i18n";
 import { useState } from "react";
+import { Configure } from "../../injectables/configure";
 
 interface Inputs {
   onFileChange?: (file: File | undefined) => void | Promise<void>;
@@ -57,7 +58,10 @@ export default function InputFileUpload({
       {!hideCurrentFile && file && (
         <div>
           <p>File name: {file.name}</p>
-          <p>Size: {(file.size / 1024).toFixed(2)} KB</p>
+          <p>
+            Size: {(file.size / 1024).toFixed(2)} KB /
+            {Configure.file_size_limit} KB
+          </p>
           <p>Type: {file.type}</p>
         </div>
       )}

@@ -19,4 +19,6 @@ export class Configure {
   public static readonly max_pt_value = 9;
   public static readonly min_pt_value = -9;
   public static readonly default_card_art_src = "colorless_mana.png";
+  public static readonly guarantee_land_drop = true; // useful for debugging
+  public static readonly file_size_limit = 1000; // Kilobytes (KB)
 }

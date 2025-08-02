@@ -126,15 +126,26 @@ export class CardsService {
     }*/
 
   private static async _getAll(): Promise<Card[]> {
+    const allCards: Card[] = [];
+    let page = 0;
+    const pageSize = 100;
+
     try {
-      const response = await axios.get(`${Configure.url}cards/`, {
-        sort: "asc",
-      } as any);
-      console.log("getAllCards response:");
-      console.log(response.data);
-      return response.data.map(
-        (cardData: CardData) => new Card(cardData.id, cardData)
-      );
+      while (allCards.length === page * pageSize) {
+        const response = await axios.get(`${Configure.url}cards/`, {
+          params: {
+            page,
+            pageSize,
+          },
+        });
+        allCards.push(
+          ...response.data.map(
+            (cardData: CardData) => new Card(cardData.id, cardData)
+          )
+        );
+        page += 1;
+      }
+      return allCards;
     } catch (e) {
       console.log(e);
       return [];
