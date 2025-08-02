@@ -1,16 +1,12 @@
 import { CardInPlay } from "./cardinplay";
 import { Configure } from "../configure";
-import { CanvasElement, ZIndex } from "../render/canvaselement";
+import { CanvasElement } from "../render/canvaselement";
 import { Rect } from "../render/renderutil";
 
 const SPACING = 1.1;
 
 export class PlayArea extends CanvasElement {
   public override children: CardInPlay[] = [];
-
-  constructor() {
-    super({ x: 0, y: 0, w: 0, h: 0, rot: 0, scale: 1 }, ZIndex.NonInteractive);
-  }
 
   public get zIndex(): number {
     return this._zIndex;

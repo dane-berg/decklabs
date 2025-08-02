@@ -12,7 +12,9 @@ export class Hand extends CanvasElement {
 
     const handWidth = Math.min(
       this.rd.w - Configure.CARD_WIDTH * Configure.HOVERED_SCALE,
-      (this.children.length - 2) * Configure.CARD_WIDTH
+      (this.children.length - 1) *
+        Configure.CARD_WIDTH *
+        Configure.NONOVERLAP_RATIO
     );
     const leftX = (this.rd.w - handWidth) / 2;
     const lastHoveredIndex = CardElement.lastHoveredCard
@@ -22,7 +24,10 @@ export class Hand extends CanvasElement {
       : -1;
 
     this.children.forEach((card, index) => {
-      const dx = (index * handWidth) / (this.children.length - 1);
+      let dx = (index * handWidth) / (this.children.length - 1);
+      if (this.children.length === 1) {
+        dx = 0;
+      }
       if (lastHoveredIndex <= -1) {
         card.update({
           x: leftX + dx,

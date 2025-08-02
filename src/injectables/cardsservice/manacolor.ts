@@ -67,3 +67,4 @@ export const ManaColors: Record<ManaColorValue, ManaColor> = {
 export function isManaColorValue(value: string): value is ManaColorValue {
   return Object.keys(ManaColors).includes(value);
 }
+export const allManaColorValues = Object.keys(ManaColors) as ManaColorValue[];

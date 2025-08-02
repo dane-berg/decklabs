@@ -1,4 +1,5 @@
 import { Configure } from "../configure";
+import { isTrait, Trait } from "../game/traits";
 import { loadOntoImage } from "../render/renderutil";
 import { isManaColorValue, ManaColors, ManaColorValue } from "./manacolor";
 import {
@@ -9,6 +10,7 @@ import {
 } from "./template";
 
 export type CardId = number;
+export type Mana = Partial<Record<ManaColorValue, number>>;
 
 export type StrictCardData = {
   name: string;
@@ -17,7 +19,7 @@ export type StrictCardData = {
   description: string;
   imgSrc: File | string;
   templateValue: TemplateValue;
-  mana: Partial<Record<ManaColorValue, number>>;
+  mana: Mana;
   manaString: string;
   traits: string;
   effect: string;
@@ -94,7 +96,7 @@ export class Card {
     return Templates[this.templateValue];
   }
 
-  public get mana(): Partial<Record<ManaColorValue, number>> {
+  public get mana(): Mana {
     if (this.data.mana) {
       return this.data.mana;
     } else if (this.data.manaString) {
@@ -118,6 +120,10 @@ export class Card {
     return this.data.traits ?? "";
   }
 
+  public get traitsList(): Trait[] {
+    return this.traits.split(" ").filter((word) => isTrait(word));
+  }
+
   public get effect(): string {
     return this.data.effect ?? "";
   }
@@ -139,9 +145,7 @@ export class Card {
   }
 }
 
-export function manaToString(
-  manaObj: Partial<Record<ManaColorValue, number>>
-): string {
+export function manaToString(manaObj: Mana): string {
   const mana: string[] = [];
   (Object.keys(ManaColors) as ManaColorValue[]).forEach((manaColorValue) => {
     const n = manaObj[manaColorValue];
@@ -152,10 +156,8 @@ export function manaToString(
   return mana.join(manaDelimiter);
 }
 
-export function parseManaString(
-  manaString: string
-): Partial<Record<ManaColorValue, number>> {
-  const mana: Partial<Record<ManaColorValue, number>> = {};
+export function parseManaString(manaString: string): Mana {
+  const mana: Mana = {};
   manaString.split(manaDelimiter).forEach((manaColorValue) => {
     if (isManaColorValue(manaColorValue)) {
       mana[manaColorValue] = 1 + (mana[manaColorValue] ?? 0);

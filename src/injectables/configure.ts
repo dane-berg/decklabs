@@ -9,7 +9,7 @@ export class Configure {
   public static readonly DECK_SIZE = 20;
   public static readonly STARTING_HAND_SIZE = 7;
   public static readonly ANIMATION_SMOOTHING = 0.9; // must be > 0 and < 1;
-  public static readonly NONOVERLAP_RATIO = 0.7;
+  public static readonly NONOVERLAP_RATIO = 0.8;
   public static readonly card_font = "Arial"; // TODO: pick a better font
   public static readonly card_font_size = 7;
   public static readonly card_font_str = `${this.card_font_size}px ${this.card_font}`;

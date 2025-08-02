@@ -11,13 +11,21 @@ import {
   InitAction,
   shuffleInPlace,
   GameActionType,
+  getCardsFp,
+  getManaFp,
 } from "./gameaction";
 import { Card, CardId } from "../cardsservice/card";
+import { LandArea } from "./landarea";
+import { allManaColorValues } from "../cardsservice/manacolor";
+import { Trait } from "./traits";
+import { ManaDisplay } from "./manadisplay";
 
 export class Game {
   private playerDeck: CardInPlay[] = [];
   public playerHand: Hand = new Hand();
   public playerPlayArea: PlayArea = new PlayArea();
+  public playerLandArea: LandArea = new LandArea();
+  public playerMana: ManaDisplay = new ManaDisplay();
   private initPromise: Promise<boolean>;
   public initialized: boolean = false;
   private actionStack: FingerprintedGameAction[] = [];
@@ -28,6 +36,21 @@ export class Game {
       this.initialized = success;
       return success;
     });
+  }
+
+  private findCard(cardId: CardId): Card {
+    const card = this.cards.find((c) => c.id === cardId);
+    if (!card) {
+      throw new Error("Card Not Found in Game");
+    }
+    return card;
+  }
+
+  private isLand(cardId: CardId): boolean {
+    const card = this.findCard(cardId);
+    return (
+      card.traitsList.includes(Trait.Land) && !card.name.includes("Forest")
+    );
   }
 
   private async init() {
@@ -42,7 +65,16 @@ export class Game {
       playerTwoHand: [],
     };
 
-    for (let i = 0; i < Configure.DECK_SIZE; i++) {
+    // randomly generate two decks, guaranteeing that each has at least one land
+    const guaranteedLand = this.cards.find(
+      (c) => c.traitsList.includes(Trait.Land) && !c.name.includes("Forest")
+    )?.id;
+    if (!guaranteedLand) {
+      throw new Error("No land cards in universe!");
+    }
+    initAction.playerOneDeck.push(guaranteedLand);
+    initAction.playerTwoDeck.push(guaranteedLand);
+    for (let i = 1; i < Configure.DECK_SIZE; i++) {
       initAction.playerOneDeck.push(this.cards[(2 * i) % this.cards.length].id);
       initAction.playerTwoDeck.push(
         this.cards[(2 * i + 1) % this.cards.length].id
@@ -50,6 +82,23 @@ export class Game {
     }
     shuffleInPlace(initAction.playerOneDeck);
     shuffleInPlace(initAction.playerTwoDeck);
+
+    if (Configure.guarantee_land_drop) {
+      // player one
+      let landIndex: number = initAction.playerOneDeck.findIndex((cardId) =>
+        this.isLand(cardId)
+      );
+      let land: CardId = initAction.playerOneDeck[landIndex];
+      initAction.playerOneDeck[landIndex] = initAction.playerOneDeck[0];
+      initAction.playerOneDeck[0] = land;
+      // player two
+      landIndex = initAction.playerTwoDeck.findIndex((cardId) =>
+        this.isLand(cardId)
+      );
+      land = initAction.playerTwoDeck[landIndex];
+      initAction.playerTwoDeck[landIndex] = initAction.playerTwoDeck[0];
+      initAction.playerTwoDeck[0] = land;
+    }
     initAction.playerOneHand = initAction.playerOneDeck.splice(
       0,
       Configure.STARTING_HAND_SIZE
@@ -65,25 +114,18 @@ export class Game {
 
   // TODO: make unapplyAction (does each item on the stack need to have a list of reversal actions?)
   public async applyAction(action: GameAction): Promise<boolean> {
+    console.log(action);
     try {
       switch (action.type) {
         case GameActionType.Init: {
           const newPlayerDeck = await Promise.all(
             action.playerOneDeck.map(async (cardId: CardId) => {
-              const card = await CardsService.getCard(cardId);
-              if (!card) {
-                throw new Error("Card Not Found");
-              }
-              return new CardInPlay(this, card);
+              return new CardInPlay(this, this.findCard(cardId));
             })
           );
           const newPlayerHand = await Promise.all(
             action.playerOneHand.map(async (cardId: CardId) => {
-              const card = await CardsService.getCard(cardId);
-              if (!card) {
-                throw new Error("Card Not Found");
-              }
-              return new CardInPlay(this, card);
+              return new CardInPlay(this, this.findCard(cardId));
             })
           );
           this.playerDeck = newPlayerDeck;
@@ -95,10 +137,32 @@ export class Game {
             (c) => c.instanceId === action.spell
           );
           if (!spell) {
-            throw new Error("Card Not Found");
+            throw new Error("Card Not Found in Player Hand");
           }
-          // TODO: parse spell effect
-          this.playerPlayArea.addChild(spell);
+          allManaColorValues.forEach((color) => {
+            this.playerMana.mana[color] =
+              (this.playerMana.mana[color] || 0) -
+              (spell.card.mana[color] || 0);
+          });
+          // parse spell effect
+          if (spell.card.traitsList.includes(Trait.Land)) {
+            allManaColorValues.forEach((color) => {
+              try {
+                const regex = new RegExp(color, "g");
+                const additionalMana = (spell.card.effect.match(regex) || [])
+                  .length;
+                this.playerMana.maxMana[color] =
+                  (this.playerMana.maxMana[color] || 0) + additionalMana;
+              } catch (e) {
+                console.log(
+                  `ManaColorValue ${color} could not be converted to regex expression`
+                );
+              }
+            });
+            this.playerLandArea.addChild(spell);
+          } else {
+            this.playerPlayArea.addChild(spell);
+          }
           break;
         }
         default: {
@@ -110,29 +174,26 @@ export class Game {
       return false;
     }
     this.actionStack.push({ ...action, fp: this.getFingerprint() });
+    if (
+      this.actionStack.length > 1 &&
+      this.actionStack[this.actionStack.length - 1] ===
+        this.actionStack[this.actionStack.length - 2]
+    ) {
+      throw new Error("Every action must modify the game fingerprint");
+    }
     console.log(this.actionStack.map((a) => `${a.type} ${a.fp}`));
     return true;
   }
 
   private getFingerprint(): FingerprintValue {
-    const a = 1;
+    const deckFp = getCardsFp(this.playerDeck, 1);
+    const handFp = getCardsFp(this.playerHand.children, 2);
+    const landAreaFp = getCardsFp(this.playerLandArea.children, 3);
+    const playAreaFp = getCardsFp(this.playerPlayArea.children, 4);
+    const manaFp = getManaFp(this.playerMana.mana, 5);
+    const maxManaFp = getManaFp(this.playerMana.maxMana, 6);
 
-    const deckFp = this.playerDeck.reduce(
-      (h: FingerprintValue, card: CardInPlay) =>
-        card.instanceId * h + card.card.id,
-      a
-    );
-    const handFp = this.playerHand.children.reduce(
-      (h: FingerprintValue, card: CardInPlay) =>
-        card.instanceId * h + card.card.id,
-      a
-    );
-    const playAreaFp = this.playerPlayArea.children.reduce(
-      (h: FingerprintValue, card: CardInPlay) =>
-        card.instanceId * h + card.card.id,
-      a
-    );
-    return deckFp ^ handFp ^ playAreaFp;
+    return deckFp ^ handFp ^ landAreaFp ^ playAreaFp ^ manaFp ^ maxManaFp;
   }
 
   public onCardClick(card: CardInPlay) {

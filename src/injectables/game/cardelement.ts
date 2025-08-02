@@ -1,8 +1,12 @@
 import { Card } from "../cardsservice/card";
-import { ManaColors, ManaColorValue } from "../cardsservice/manacolor";
+import {
+  allManaColorValues,
+  ManaColors,
+  ManaColorValue,
+} from "../cardsservice/manacolor";
 import { Configure } from "../configure";
 import { RootElement } from "../render/canvaselement";
-import { Rect, wrapText } from "../render/renderutil";
+import { Rect, wrapTextLines } from "../render/renderutil";
 
 export class CardElement extends RootElement {
   public static lastHoveredCard?: CardElement;
@@ -43,14 +47,13 @@ export class CardElement extends RootElement {
       );
 
       // Mana
-      // TODO: Use numbers to decrease the size of the mana cost
-      const manaImgs: (HTMLImageElement | undefined)[] = (
-        Object.keys(ManaColors) as ManaColorValue[]
-      ).flatMap((colorValue: ManaColorValue) => {
-        const manaColor = ManaColors[colorValue];
-        const numMana = this.card.mana[colorValue];
-        return numMana ? Array(numMana).fill(manaColor.img) : [];
-      });
+      // TODO: Use numbers to condense the mana cost
+      const manaImgs: (HTMLImageElement | undefined)[] =
+        allManaColorValues.flatMap((colorValue: ManaColorValue) => {
+          const manaColor = ManaColors[colorValue];
+          const numMana = this.card.mana[colorValue];
+          return numMana ? Array(numMana).fill(manaColor.img) : [];
+        });
       if (manaImgs.every((img) => !!img)) {
         manaImgs.forEach((img, index) => {
           const diameter = 8;
@@ -83,17 +86,18 @@ export class CardElement extends RootElement {
         ctx.fillText(this.card.traits, 11, 106);
       }
 
-      // Description
-      if (this.card.description) {
-        ctx.font = Configure.card_secondary_font_str;
-        ctx.fillStyle = "black";
-        wrapText(
+      // Effect & Description
+      if (this.card.effect || this.card.description) {
+        wrapTextLines(
           ctx,
-          this.card.description,
+          [this.card.effect, this.card.description].filter(
+            (t) => t !== undefined
+          ),
           11,
           117,
           108,
-          1 + Configure.card_secondary_font_size
+          1 + Configure.card_secondary_font_size,
+          Configure.card_secondary_font_str
         );
       }
 

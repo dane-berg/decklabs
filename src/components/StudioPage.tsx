@@ -1,7 +1,7 @@
 import { I18n } from "../injectables/i18n";
 import { useEffect, useState } from "react";
 import InputFileUpload from "./common/InputFileUpload";
-import { Card } from "../injectables/cardsservice/card";
+import { Card, Mana } from "../injectables/cardsservice/card";
 import CanvasComponent from "./common/CanvasComponent";
 import { CardElement } from "../injectables/game/cardelement";
 import { Configure } from "../injectables/configure";
@@ -59,9 +59,7 @@ const StudioPage = () => {
   const [templateValue, setTemplateValue] = useState<TemplateValue>(
     card.templateValue
   );
-  const [mana, setMana] = useState<Partial<Record<ManaColorValue, number>>>(
-    card.mana
-  );
+  const [mana, setMana] = useState<Mana>(card.mana);
   const [img, setImg] = useState<File | undefined>(
     typeof card.imgSrc === "string" ? undefined : card.imgSrc
   );

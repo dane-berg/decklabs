@@ -195,23 +195,42 @@ export function wrapText(
   x: number,
   y: number,
   maxWidth: number,
-  lineHeight: number
+  lineHeight: number,
+  font: string = Configure.card_font,
+  fillstyle: string = "black"
 ) {
-  const words = text.split(" ");
-  let line = "";
+  wrapTextLines(ctx, [text], x, y, maxWidth, lineHeight, font, fillstyle);
+}
 
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + " ";
-    const metrics = ctx.measureText(testLine);
-    const testWidth = metrics.width;
+export function wrapTextLines(
+  ctx: CanvasRenderingContext2D,
+  textLines: string[],
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  font: string = Configure.card_font,
+  fillstyle: string = "black"
+) {
+  ctx.font = `${lineHeight}px ${font}`;
+  ctx.fillStyle = fillstyle;
+  for (const text of textLines) {
+    const words = text.split(" ");
+    let line = "";
 
-    if (testWidth > maxWidth && n > 0) {
-      ctx.fillText(line, x, y);
-      line = words[n] + " ";
-      y += lineHeight;
-    } else {
-      line = testLine;
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + " ";
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+
+      if (testWidth > maxWidth && n > 0) {
+        ctx.fillText(line, x, y);
+        line = words[n] + " ";
+        y += lineHeight;
+      } else {
+        line = testLine;
+      }
     }
+    ctx.fillText(line, x, y);
   }
-  ctx.fillText(line, x, y);
 }

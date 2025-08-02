@@ -130,19 +130,19 @@ export class Canvas {
   }
 
   public static renderElement(ctx: CanvasRenderingContext2D, e: CanvasElement) {
-    ctx.save();
-    // translate to the center of the element
-    ctx.translate(e.rd.x + e.rd.w / 2, e.rd.y + e.rd.h / 2);
-    // apply rotation & scale
-    if (e.rd.rot) {
-      ctx.rotate(e.rd.rot);
-    }
-    if (e.rd.scale !== 1) {
-      ctx.scale(e.rd.scale, e.rd.scale);
-    }
-    // translate to the top right corner of the element
-    ctx.translate((-0.5 * e.rd.w) / e.rd.scale, (-0.5 * e.rd.h) / e.rd.scale);
     if (e.rd.w && e.rd.h && e.rd.scale) {
+      ctx.save();
+      // translate to the center of the element
+      ctx.translate(e.rd.x + e.rd.w / 2, e.rd.y + e.rd.h / 2);
+      // apply rotation & scale
+      if (e.rd.rot) {
+        ctx.rotate(e.rd.rot);
+      }
+      if (e.rd.scale !== 1) {
+        ctx.scale(e.rd.scale, e.rd.scale);
+      }
+      // translate to the top right corner of the element
+      ctx.translate((-0.5 * e.rd.w) / e.rd.scale, (-0.5 * e.rd.h) / e.rd.scale);
       // draw the element
       e.draw(ctx);
       if (DEBUG_MODE) {
@@ -150,11 +150,11 @@ export class Canvas {
         ctx.lineWidth = e.zIndex ? 4 : 1;
         ctx.strokeRect(0, 0, e.rd.w, e.rd.h);
       }
+      // render the children in ascending zOrder without modifying the underlying order
+      [...e.children]
+        .sort((a, b) => a.zIndex - b.zIndex)
+        .forEach((child) => this.renderElement(ctx, child));
+      ctx.restore();
     }
-    // render the children in ascending zOrder without modifying the underlying order
-    [...e.children]
-      .sort((a, b) => a.zIndex - b.zIndex)
-      .forEach((child) => this.renderElement(ctx, child));
-    ctx.restore();
   }
 }
