@@ -121,6 +121,22 @@ export class Card {
     }
   }
 
+  public primaryColor(): ManaColorValue {
+    return isManaColorValue(this.templateValue)
+      ? this.templateValue
+      : ManaColorValue.Colorless;
+  }
+
+  public colors(): ManaColorValue[] {
+    const colors = (Object.entries(this.mana) as [ManaColorValue, number][])
+      .filter(
+        ([color, value]: [ManaColorValue, number]) =>
+          color !== ManaColorValue.Colorless && !!value
+      )
+      .map(([color, _]: [ManaColorValue, number]) => color);
+    return colors.length ? colors : [ManaColorValue.Colorless];
+  }
+
   public get traits(): string {
     return this.data.traits ?? "";
   }
@@ -135,15 +151,7 @@ export class Card {
     ) {
       baseTraits.push(BaseTrait.Creature);
     }
-    const colors = allManaColorValues.filter((color) => !!this.mana[color]);
-    const colorlessIndex = colors.indexOf(ManaColorValue.Colorless);
-    if (colors.length > 1 && colorlessIndex != -1) {
-      colors.splice(colorlessIndex, 1); // remove colorless
-    }
-    if (colors.length === 0) {
-      colors.push(ManaColorValue.Colorless); // add colorless
-    }
-    return [...baseTraits, ...colors];
+    return [...baseTraits, ...this.colors()];
   }
 
   public get effect(): string {

@@ -12,22 +12,16 @@ export class LandArea extends CanvasElement {
 
     const groups: Partial<Record<ManaColorValue, CardInPlay[]>> = {};
     this.children.forEach((card) => {
-      const traits = card.card.traitsList;
-      const color =
-        allManaColorValues.find((color) => traits.includes(color)) ||
-        ManaColorValue.Colorless;
+      const color = card.card.primaryColor();
       if (!groups[color]) {
         groups[color] = [];
       }
       groups[color].push(card);
     });
-    const groupsList = allManaColorValues
-      .map((color) => groups[color])
-      .filter((arr) => !!arr);
 
     withEvenSpacing(
       this,
-      groupsList,
+      Object.values(groups),
       0,
       Configure.CARD_WIDTH * Configure.SPACING_RATIO,
       (group: CardInPlay[], xPos: number) => {
