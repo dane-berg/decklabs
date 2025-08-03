@@ -17,8 +17,9 @@ import {
 import { Card, CardId } from "../cardsservice/card";
 import { LandArea } from "./landarea";
 import { allManaColorValues } from "../cardsservice/manacolor";
-import { Trait } from "./traits";
+import { BaseTrait } from "./traits";
 import { ManaDisplay } from "./manadisplay";
+import { triggerOnCast } from "./magicinterpreter";
 
 export class Game {
   private playerDeck: CardInPlay[] = [];
@@ -26,6 +27,7 @@ export class Game {
   public playerPlayArea: PlayArea = new PlayArea();
   public playerLandArea: LandArea = new LandArea();
   public playerMana: ManaDisplay = new ManaDisplay();
+  public playerHasPlayedLand: boolean = false;
   private initPromise: Promise<boolean>;
   public initialized: boolean = false;
   private actionStack: FingerprintedGameAction[] = [];
@@ -49,7 +51,7 @@ export class Game {
   private isLand(cardId: CardId): boolean {
     const card = this.findCard(cardId);
     return (
-      card.traitsList.includes(Trait.Land) && !card.name.includes("Forest")
+      card.traitsList.includes(BaseTrait.Land) && !card.name.includes("Forest")
     );
   }
 
@@ -67,7 +69,7 @@ export class Game {
 
     // randomly generate two decks, guaranteeing that each has at least one land
     const guaranteedLand = this.cards.find(
-      (c) => c.traitsList.includes(Trait.Land) && !c.name.includes("Forest")
+      (c) => c.traitsList.includes(BaseTrait.Land) && !c.name.includes("Forest")
     )?.id;
     if (!guaranteedLand) {
       throw new Error("No land cards in universe!");
@@ -133,35 +135,27 @@ export class Game {
           break;
         }
         case GameActionType.Cast: {
-          const spell = this.playerHand.children.find(
+          const spell: CardInPlay | undefined = this.playerHand.children.find(
             (c) => c.instanceId === action.spell
           );
           if (!spell) {
             throw new Error("Card Not Found in Player Hand");
           }
+          // pay mana cost
           allManaColorValues.forEach((color) => {
             this.playerMana.mana[color] =
               (this.playerMana.mana[color] || 0) -
               (spell.card.mana[color] || 0);
           });
           // parse spell effect
-          if (spell.card.traitsList.includes(Trait.Land)) {
-            allManaColorValues.forEach((color) => {
-              try {
-                const regex = new RegExp(color, "g");
-                const additionalMana = (spell.card.effect.match(regex) || [])
-                  .length;
-                this.playerMana.maxMana[color] =
-                  (this.playerMana.maxMana[color] || 0) + additionalMana;
-              } catch (e) {
-                console.log(
-                  `ManaColorValue ${color} could not be converted to regex expression`
-                );
-              }
-            });
+          triggerOnCast(this, spell);
+          if (spell.card.traitsList.includes(BaseTrait.Land)) {
             this.playerLandArea.addChild(spell);
-          } else {
+            this.playerHasPlayedLand = true;
+          } else if (spell.card.traitsList.includes(BaseTrait.Creature)) {
             this.playerPlayArea.addChild(spell);
+          } else {
+            this.playerHand.removeChild(spell); // TODO: move to discard
           }
           break;
         }
@@ -191,9 +185,8 @@ export class Game {
     const landAreaFp = getCardsFp(this.playerLandArea.children, 3);
     const playAreaFp = getCardsFp(this.playerPlayArea.children, 4);
     const manaFp = getManaFp(this.playerMana.mana, 5);
-    const maxManaFp = getManaFp(this.playerMana.maxMana, 6);
 
-    return deckFp ^ handFp ^ landAreaFp ^ playAreaFp ^ manaFp ^ maxManaFp;
+    return deckFp ^ handFp ^ landAreaFp ^ playAreaFp ^ manaFp;
   }
 
   public onCardClick(card: CardInPlay) {

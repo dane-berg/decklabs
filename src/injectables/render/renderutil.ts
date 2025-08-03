@@ -1,4 +1,5 @@
 import { Configure } from "../configure";
+import { CanvasElement } from "./canvaselement";
 
 export type RenderData = TransformData & Rect;
 
@@ -233,4 +234,25 @@ export function wrapTextLines(
     }
     ctx.fillText(line, x, y);
   }
+}
+
+export function withEvenSpacing<T>(
+  thisElement: CanvasElement,
+  arr: T[],
+  minTotalMargin: number,
+  itemWidth: number,
+  update: (item: T, xPos: number, index: number) => void
+) {
+  const totalWidth = Math.min(
+    thisElement.rd.w - minTotalMargin,
+    (arr.length - 1) * itemWidth
+  );
+  const leftX = (thisElement.rd.w - totalWidth) / 2;
+  arr.forEach((item: T, index: number) => {
+    let dx = (index * totalWidth) / (arr.length - 1);
+    if (arr.length === 1) {
+      dx = 0;
+    }
+    update(item, leftX + dx, index);
+  });
 }

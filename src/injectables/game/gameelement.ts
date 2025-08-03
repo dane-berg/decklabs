@@ -19,9 +19,15 @@ export class GameElement extends RootElement {
       x: 0,
       y: this.rd.h / 2,
       w: this.rd.w,
-      h: this.rd.h / 2 - Configure.CARD_HEIGHT * Configure.NONOVERLAP_RATIO,
+      h: this.rd.h / 2 - Configure.CARD_HEIGHT,
     });
-    this.game.playerLandArea.update({ x: 0, y: 0, w: 0, h: 0 });
+    // TODO: shrink after implementing condensed card elements
+    this.game.playerLandArea.update({
+      x: 0,
+      y: (this.rd.h * 2) / 3,
+      w: this.rd.w / 2,
+      h: Configure.CARD_HEIGHT,
+    });
     this.game.playerMana.update({ x: 0, y: this.rd.h - 50, w: 300, h: 300 });
     this.game.playerHand.update({
       x: 0,

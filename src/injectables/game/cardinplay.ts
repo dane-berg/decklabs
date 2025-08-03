@@ -20,6 +20,7 @@ export class CardInPlay extends CanvasElement {
 
   public instanceId: CardInstanceId = ++CardInPlay.lastInstanceId;
   public transformData: NoisyTransformData = new NoisyTransformData();
+  public cardElement: CardElement;
 
   constructor(
     private game: Game,
@@ -27,8 +28,8 @@ export class CardInPlay extends CanvasElement {
     public noiseScale: number = NOISE_SCALE
   ) {
     super();
-    const child = new CardElement(this.card);
-    this.addChild(child, ZIndex.NonInteractive, false);
+    this.cardElement = new CardElement(this.card);
+    this.addChild(this.cardElement, ZIndex.NonInteractive, false);
   }
 
   public get rd(): RenderData {

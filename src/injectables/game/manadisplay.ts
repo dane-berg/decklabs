@@ -4,10 +4,7 @@ import { CanvasElement } from "../render/canvaselement";
 import { RenderData, wrapText } from "../render/renderutil";
 
 export class ManaDisplay extends CanvasElement {
-  constructor(
-    public readonly mana: Mana = {},
-    public readonly maxMana: Mana = {}
-  ) {
+  constructor(public readonly mana: Mana = {}) {
     super();
   }
 
@@ -19,10 +16,8 @@ export class ManaDisplay extends CanvasElement {
     wrapText(
       ctx,
       allManaColorValues
-        .map(
-          (value) =>
-            `${value} ${this.mana[value] || 0} / ${this.maxMana[value] || 0}`
-        )
+        .filter((value) => this.mana[value])
+        .map((value) => `${value} ${this.mana[value] || 0}`)
         .join(", "),
       0,
       0,

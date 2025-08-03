@@ -11,7 +11,10 @@ import { Rect, wrapTextLines } from "../render/renderutil";
 export class CardElement extends RootElement {
   public static lastHoveredCard?: CardElement;
 
-  constructor(public card: Card) {
+  constructor(
+    public card: Card,
+    public fullArt: boolean = true
+  ) {
     super({
       x: 0,
       y: 0,

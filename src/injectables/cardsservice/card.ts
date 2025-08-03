@@ -1,7 +1,12 @@
 import { Configure } from "../configure";
-import { isTrait, Trait } from "../game/traits";
+import { BaseTrait, isTrait, Trait } from "../game/traits";
 import { loadOntoImage } from "../render/renderutil";
-import { isManaColorValue, ManaColors, ManaColorValue } from "./manacolor";
+import {
+  allManaColorValues,
+  isManaColorValue,
+  ManaColors,
+  ManaColorValue,
+} from "./manacolor";
 import {
   defaultTemplateValue,
   Template,
@@ -121,7 +126,24 @@ export class Card {
   }
 
   public get traitsList(): Trait[] {
-    return this.traits.split(" ").filter((word) => isTrait(word));
+    // is this worth caching?
+    const baseTraits = this.traits.split(" ").filter((word) => isTrait(word));
+    if (
+      !baseTraits.includes(BaseTrait.Creature) &&
+      !baseTraits.includes(BaseTrait.Land) &&
+      (this.power != undefined || this.toughness !== undefined)
+    ) {
+      baseTraits.push(BaseTrait.Creature);
+    }
+    const colors = allManaColorValues.filter((color) => !!this.mana[color]);
+    const colorlessIndex = colors.indexOf(ManaColorValue.Colorless);
+    if (colors.length > 1 && colorlessIndex != -1) {
+      colors.splice(colorlessIndex, 1); // remove colorless
+    }
+    if (colors.length === 0) {
+      colors.push(ManaColorValue.Colorless); // add colorless
+    }
+    return [...baseTraits, ...colors];
   }
 
   public get effect(): string {
