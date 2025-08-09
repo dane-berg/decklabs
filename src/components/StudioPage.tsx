@@ -8,10 +8,13 @@ import { Configure } from "../injectables/configure";
 import {
   Button,
   FormControl,
+  FormControlLabel,
+  FormGroup,
   InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
+  Switch,
   TextField,
 } from "@mui/material";
 import {
@@ -55,11 +58,12 @@ const StudioPage = () => {
     })
   );
 
+  const [fullCard, setFullCard] = useState<boolean>(true);
   const [name, setName] = useState(card.name);
   const [templateValue, setTemplateValue] = useState<TemplateValue>(
     card.templateValue
   );
-  const [mana, setMana] = useState<Mana>(card.mana);
+  const [mana, setMana] = useState<Mana>(card.manaObj());
   const [img, setImg] = useState<File | undefined>(
     typeof card.imgSrc === "string" ? undefined : card.imgSrc
   );
@@ -142,6 +146,19 @@ const StudioPage = () => {
         >
           {I18n.get("word-publish")}
         </Button>
+        <FormGroup>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={fullCard}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  setFullCard(event.target.checked);
+                }}
+              />
+            }
+            label={I18n.get("full-card")}
+          />
+        </FormGroup>
       </div>
       <div
         style={{
@@ -279,7 +296,10 @@ const StudioPage = () => {
         <div style={tileStyles}>
           {
             // Card preview
-            <CardComponent card={card} />
+            <CardComponent
+              card={card}
+              fullCard={fullCard}
+            />
           }
         </div>
       </div>

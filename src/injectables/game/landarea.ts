@@ -3,6 +3,7 @@ import { Configure } from "../configure";
 import { CanvasElement, ZIndex } from "../render/canvaselement";
 import { RenderData, withEvenSpacing } from "../render/renderutil";
 import { CardInPlay } from "./cardinplay";
+import { GameActionType } from "./gameaction";
 
 export class LandArea extends CanvasElement {
   public override children: CardInPlay[] = [];
@@ -32,5 +33,12 @@ export class LandArea extends CanvasElement {
         });
       }
     );
+  }
+
+  public onCardClick(card: CardInPlay) {
+    card.game.applyActionIfVerified({
+      type: GameActionType.TapLand,
+      spell: card.instanceId,
+    });
   }
 }

@@ -23,7 +23,7 @@ export class CardInPlay extends CanvasElement {
   public cardElement: CardElement;
 
   constructor(
-    private game: Game,
+    public readonly game: Game,
     public card: Card,
     public noiseScale: number = NOISE_SCALE
   ) {
@@ -51,13 +51,15 @@ export class CardInPlay extends CanvasElement {
     this._rd = {
       ...rd,
       w: Configure.CARD_WIDTH,
-      h: Configure.CARD_HEIGHT,
+      h: this.cardElement.fullArt
+        ? Configure.CARD_HEIGHT
+        : Configure.CONDENSED_CARD_HEIGHT,
     };
   }
 
   public update(
     renderData: Position & Partial<TransformData>,
-    noiseScale: number = NOISE_SCALE,
+    noiseScale: number = this.cardElement.fullArt ? NOISE_SCALE : 0,
     smoothing: number = Configure.ANIMATION_SMOOTHING
   ) {
     this.transformData.update();
@@ -68,10 +70,11 @@ export class CardInPlay extends CanvasElement {
     this.rd = newData;
     this.noiseScale =
       this.noiseScale * smoothing + noiseScale * (1 - smoothing);
+    this.cardElement.update({});
   }
 
   public override onClick() {
-    this.game.onCardClick(this);
+    this.parent?.onCardClick(this);
   }
 
   public override onMouseEnter(pos: Position) {

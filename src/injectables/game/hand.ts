@@ -3,6 +3,7 @@ import { CanvasElement, ZIndex } from "../render/canvaselement";
 import { Rect, withEvenSpacing } from "../render/renderutil";
 import { CardElement } from "./cardelement";
 import { CardInPlay } from "./cardinplay";
+import { GameActionType } from "./gameaction";
 
 export class Hand extends CanvasElement {
   public override children: CardInPlay[] = [];
@@ -55,5 +56,12 @@ export class Hand extends CanvasElement {
         }
       }
     );
+  }
+
+  public onCardClick(card: CardInPlay) {
+    card.game.applyActionIfVerified({
+      type: GameActionType.Cast,
+      spell: card.instanceId,
+    });
   }
 }

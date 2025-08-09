@@ -33,11 +33,12 @@ export class PlayArea extends CanvasElement {
       Configure.CARD_WIDTH +
       (this.rd.w - this.children.length * Configure.CARD_WIDTH) /
         (1 + this.children.length);
-    this.children.forEach((card, index) =>
+    this.children.forEach((card, index) => {
       card.update({
         x: x_scale * (index - (this.children.length - 1) / 2) + this.rd.w / 2,
         y: (Configure.CARD_HEIGHT * SPACING) / 2,
-      })
-    );
+      });
+      card.cardElement.fullArt = false;
+    });
   }
 }

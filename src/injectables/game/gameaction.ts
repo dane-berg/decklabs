@@ -1,13 +1,6 @@
-import { CardId, Mana } from "../cardsservice/card";
+import { CardId, ManaMap } from "../cardsservice/card";
 import { allManaColorValues, ManaColorValue } from "../cardsservice/manacolor";
 import { CardInPlay } from "./cardinplay";
-
-export enum GameActionType {
-  Init = "InitAction",
-  Cast = "CastAction",
-}
-export type BaseGameAction = { type: GameActionType };
-export type CardInstanceId = number;
 
 export type InitAction = {
   type: GameActionType.Init;
@@ -24,7 +17,20 @@ export type CastAction = BaseGameAction & {
   spell: CardInstanceId;
 };
 
-export type GameAction = InitAction | CastAction;
+export type TapLandAction = BaseGameAction & {
+  type: GameActionType.TapLand;
+  spell: CardInstanceId;
+};
+
+export enum GameActionType {
+  Init = "InitAction",
+  Cast = "CastAction",
+  TapLand = "TapLandAction",
+}
+export type GameAction = InitAction | CastAction | TapLandAction;
+
+export type BaseGameAction = { type: GameActionType };
+export type CardInstanceId = number;
 export type FingerprintValue = number;
 export type FingerprintedGameAction = GameAction & { fp: FingerprintValue };
 
@@ -48,10 +54,11 @@ export function getCardsFp(
   );
 }
 
-export function getManaFp(mana: Mana, a: number = 0): FingerprintValue {
+export function getManaFp(mana: ManaMap, a: number = 0): FingerprintValue {
   const k = primes[a % primes.length];
   return allManaColorValues.reduce(
-    (h: FingerprintValue, color: ManaColorValue) => k * h + (mana[color] || 0),
+    (h: FingerprintValue, color: ManaColorValue) =>
+      k * h + (mana.get(color) || 0),
     0
   );
 }

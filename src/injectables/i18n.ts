@@ -17,6 +17,7 @@ export class I18n {
     "decklabs-title": "Decklabs",
     "file-upload-error": "There was an error while uploading the file.",
     "file-upload-success": "File uploaded successfully!",
+    "full-card": "Full Card",
     "library-error": "There was an error retrieving the cards library.",
     "loading-string": "loading ...",
     "quick-play": "Quick Play",

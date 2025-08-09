@@ -16,6 +16,7 @@ import {
 
 export type CardId = number;
 export type Mana = Partial<Record<ManaColorValue, number>>;
+export type ManaMap = Map<string, number>;
 
 export type StrictCardData = {
   name: string;
@@ -101,7 +102,7 @@ export class Card {
     return Templates[this.templateValue];
   }
 
-  public get mana(): Mana {
+  public manaObj(): Mana {
     if (this.data.mana) {
       return this.data.mana;
     } else if (this.data.manaString) {
@@ -109,6 +110,10 @@ export class Card {
     } else {
       return {};
     }
+  }
+
+  public get mana(): ManaMap {
+    return new Map<string, number>(Object.entries(this.manaObj()));
   }
 
   public get manaString(): string {
@@ -128,7 +133,9 @@ export class Card {
   }
 
   public colors(): ManaColorValue[] {
-    const colors = (Object.entries(this.mana) as [ManaColorValue, number][])
+    const colors = (
+      Object.entries(this.manaObj()) as [ManaColorValue, number][]
+    )
       .filter(
         ([color, value]: [ManaColorValue, number]) =>
           color !== ManaColorValue.Colorless && !!value

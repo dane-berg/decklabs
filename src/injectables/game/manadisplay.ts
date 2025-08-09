@@ -1,10 +1,12 @@
-import { Mana } from "../cardsservice/card";
-import { allManaColorValues } from "../cardsservice/manacolor";
+import { ManaMap } from "../cardsservice/card";
+import { allManaColorValues, ManaColorValue } from "../cardsservice/manacolor";
 import { CanvasElement } from "../render/canvaselement";
 import { RenderData, wrapText } from "../render/renderutil";
 
 export class ManaDisplay extends CanvasElement {
-  constructor(public readonly mana: Mana = {}) {
+  constructor(
+    public readonly mana: ManaMap = new Map<ManaColorValue, number>()
+  ) {
     super();
   }
 
@@ -16,8 +18,8 @@ export class ManaDisplay extends CanvasElement {
     wrapText(
       ctx,
       allManaColorValues
-        .filter((value) => this.mana[value])
-        .map((value) => `${value} ${this.mana[value] || 0}`)
+        .filter((value) => this.mana.get(value))
+        .map((value) => `${value} ${this.mana.get(value) || 0}`)
         .join(", "),
       0,
       0,

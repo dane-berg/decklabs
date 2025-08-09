@@ -19,7 +19,7 @@ import { LandArea } from "./landarea";
 import { allManaColorValues } from "../cardsservice/manacolor";
 import { BaseTrait } from "./traits";
 import { ManaDisplay } from "./manadisplay";
-import { triggerOnCast } from "./magicinterpreter";
+import { SpellTrigger, triggerEffect } from "./magicinterpreter";
 
 export class Game {
   private playerDeck: CardInPlay[] = [];
@@ -50,9 +50,7 @@ export class Game {
 
   private isLand(cardId: CardId): boolean {
     const card = this.findCard(cardId);
-    return (
-      card.traitsList.includes(BaseTrait.Land) && !card.name.includes("Forest")
-    );
+    return card.traitsList.includes(BaseTrait.Land);
   }
 
   private async init() {
@@ -68,8 +66,8 @@ export class Game {
     };
 
     // randomly generate two decks, guaranteeing that each has at least one land
-    const guaranteedLand = this.cards.find(
-      (c) => c.traitsList.includes(BaseTrait.Land) && !c.name.includes("Forest")
+    const guaranteedLand = this.cards.find((c) =>
+      c.traitsList.includes(BaseTrait.Land)
     )?.id;
     if (!guaranteedLand) {
       throw new Error("No land cards in universe!");
@@ -114,6 +112,62 @@ export class Game {
     return await DropZone.cardBackImgPromise;
   }
 
+  public async verifyAction(action: GameAction): Promise<boolean> {
+    switch (action.type) {
+      case GameActionType.Init: {
+        if (this.actionStack.length !== 0) {
+          console.log("can only initialize empty games");
+          return false;
+        }
+        return true;
+      }
+      case GameActionType.Cast: {
+        // spell must be in hand
+        const spell: CardInPlay | undefined = this.playerHand.children.find(
+          (c) => c.instanceId === action.spell
+        );
+        if (!spell) {
+          console.log("spell must be in hand!");
+          return false;
+        }
+        // must be able to pay mana cost
+        if (
+          !allManaColorValues.every(
+            (color) =>
+              (this.playerMana.mana.get(color) || 0) >=
+              (spell.card.mana.get(color) || 0)
+          )
+        ) {
+          console.log("must be able to pay mana cost!");
+          return false;
+        }
+        // can only play one land per turn
+        if (
+          spell.card.traitsList.includes(BaseTrait.Land) &&
+          this.playerHasPlayedLand
+        ) {
+          console.log("can only play one land per turn!");
+          return false;
+        }
+        return true;
+      }
+      case GameActionType.TapLand: {
+        // spell must be in hand
+        const spell: CardInPlay | undefined = this.playerLandArea.children.find(
+          (c) => c.instanceId === action.spell
+        );
+        if (!spell) {
+          console.log("land must be in land area!");
+          return false;
+        }
+        return true;
+      }
+      default: {
+        throw new Error(`Unrecognized GameAction ${action.type}`);
+      }
+    }
+  }
+
   // TODO: make unapplyAction (does each item on the stack need to have a list of reversal actions?)
   public async applyAction(action: GameAction): Promise<boolean> {
     console.log(action);
@@ -143,12 +197,14 @@ export class Game {
           }
           // pay mana cost
           allManaColorValues.forEach((color) => {
-            this.playerMana.mana[color] =
-              (this.playerMana.mana[color] || 0) -
-              (spell.card.mana[color] || 0);
+            this.playerMana.mana.set(
+              color,
+              (this.playerMana.mana.get(color) || 0) -
+                (spell.card.mana.get(color) || 0)
+            );
           });
           // parse spell effect
-          triggerOnCast(this, spell);
+          triggerEffect(this, spell, SpellTrigger.onCast);
           if (spell.card.traitsList.includes(BaseTrait.Land)) {
             this.playerLandArea.addChild(spell);
             this.playerHasPlayedLand = true;
@@ -159,8 +215,20 @@ export class Game {
           }
           break;
         }
+        case GameActionType.TapLand: {
+          // spell must be in hand
+          const spell: CardInPlay | undefined =
+            this.playerLandArea.children.find(
+              (c) => c.instanceId === action.spell
+            );
+          if (!spell) {
+            throw new Error("Card Not Found in Player Land Area");
+          }
+          triggerEffect(this, spell, SpellTrigger.onTap);
+          break;
+        }
         default: {
-          throw new Error("Unrecognized GameAction");
+          throw new Error(`Unrecognized GameAction ${action.type}`);
         }
       }
     } catch (e) {
@@ -170,13 +238,20 @@ export class Game {
     this.actionStack.push({ ...action, fp: this.getFingerprint() });
     if (
       this.actionStack.length > 1 &&
-      this.actionStack[this.actionStack.length - 1] ===
-        this.actionStack[this.actionStack.length - 2]
+      this.actionStack[this.actionStack.length - 1]?.fp ===
+        this.actionStack[this.actionStack.length - 2]?.fp
     ) {
       throw new Error("Every action must modify the game fingerprint");
     }
     console.log(this.actionStack.map((a) => `${a.type} ${a.fp}`));
     return true;
+  }
+
+  public async applyActionIfVerified(action: GameAction): Promise<boolean> {
+    if (await this.verifyAction(action)) {
+      return this.applyAction(action);
+    }
+    return false;
   }
 
   private getFingerprint(): FingerprintValue {
@@ -187,9 +262,5 @@ export class Game {
     const manaFp = getManaFp(this.playerMana.mana, 5);
 
     return deckFp ^ handFp ^ landAreaFp ^ playAreaFp ^ manaFp;
-  }
-
-  public onCardClick(card: CardInPlay) {
-    this.applyAction({ type: GameActionType.Cast, spell: card.instanceId });
   }
 }

@@ -6,14 +6,21 @@ import CanvasComponent from "./CanvasComponent";
 interface Inputs {
   style?: any;
   card: Card;
+  fullCard?: boolean;
 }
 
-const CardComponent = ({ style, card }: Inputs) => {
+const CardComponent = ({ style, card, fullCard }: Inputs) => {
+  const cardElement = new CardElement(card);
+  cardElement.fullArt = fullCard ?? true;
+
   return (
     <CanvasComponent
       style={style}
-      aspectRatio={Configure.CARD_HEIGHT / Configure.CARD_WIDTH}
-      rootElement={new CardElement(card)}
+      aspectRatio={
+        (fullCard ? Configure.CARD_HEIGHT : Configure.CONDENSED_CARD_HEIGHT) /
+        Configure.CARD_WIDTH
+      }
+      rootElement={cardElement}
     />
   );
 };

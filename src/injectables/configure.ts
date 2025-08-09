@@ -5,6 +5,8 @@ export class Configure {
   public static readonly CARD_WIDTH_PX = `${this.CARD_WIDTH}px`;
   public static readonly CARD_HEIGHT = 176;
   public static readonly CARD_HEIGHT_PX = `${this.CARD_HEIGHT}px`;
+  public static readonly CONDENSED_CARD_HEIGHT = (this.CARD_WIDTH * 78) / 108;
+  public static readonly CONDENSED_CARD_HEIGHT_PX = `${this.CONDENSED_CARD_HEIGHT}px`;
   public static readonly HOVERED_SCALE = 2;
   public static readonly DECK_SIZE = 20;
   public static readonly STARTING_HAND_SIZE = 7;
