@@ -13,7 +13,8 @@ export class CardElement extends RootElement {
 
   constructor(
     public card: Card,
-    public fullArt: boolean = true
+    public fullArt: boolean = true,
+    public isTapped: boolean = false
   ) {
     super({
       x: 0,
@@ -30,9 +31,10 @@ export class CardElement extends RootElement {
       ? Configure.CARD_HEIGHT
       : Configure.CONDENSED_CARD_HEIGHT;
     const _rect = { ...this.rd, ...rect };
-    this.rd.scale = Math.min(_rect.w / this.rd.w, _rect.h / this.rd.h);
     this.rd.x = _rect.x;
     this.rd.y = _rect.y;
+    (this.rd.rot = this.isTapped ? -0.2 : 0),
+      (this.rd.scale = Math.min(_rect.w / this.rd.w, _rect.h / this.rd.h));
   }
 
   public override draw(ctx: CanvasRenderingContext2D) {

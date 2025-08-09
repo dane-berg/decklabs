@@ -14,12 +14,17 @@ import {
   getCardsFp,
   getManaFp,
 } from "./gameaction";
-import { Card, CardId } from "../cardsservice/card";
+import { Card, CardId, ManaMap } from "../cardsservice/card";
 import { LandArea } from "./landarea";
-import { allManaColorValues } from "../cardsservice/manacolor";
+import { allManaColorValues, ManaColorValue } from "../cardsservice/manacolor";
 import { BaseTrait } from "./traits";
 import { ManaDisplay } from "./manadisplay";
-import { SpellTrigger, triggerEffect } from "./magicinterpreter";
+import {
+  getTriggerEffect,
+  SpellTrigger,
+  triggerEffect,
+} from "./magicinterpreter";
+import { arrayEquals } from "../arrayutil";
 
 export class Game {
   private playerDeck: CardInPlay[] = [];
@@ -112,6 +117,62 @@ export class Game {
     return await DropZone.cardBackImgPromise;
   }
 
+  private isSimpleLand(card: CardInPlay, color?: ManaColorValue): boolean {
+    return arrayEquals(
+      [`gainMana(${color ?? card.card.primaryColor()})`],
+      getTriggerEffect(card, SpellTrigger.onTap)
+    );
+  }
+
+  /**
+   * @returns A map of the mana that can be obtained by tapping simple lands
+   */
+  private getSimpleUntappedLandMana(): ManaMap {
+    const manaMap = new Map<string, number>();
+    this.playerLandArea.children
+      .filter(
+        (card: CardInPlay) =>
+          !card.cardElement.isTapped && this.isSimpleLand(card)
+      )
+      .forEach((card: CardInPlay) =>
+        manaMap.set(
+          card.card.primaryColor(),
+          (manaMap.get(card.card.primaryColor()) || 0) + 1
+        )
+      );
+    return manaMap;
+  }
+
+  private tapUntappedSimpleLand(color: ManaColorValue, n: number) {
+    for (const card of this.playerLandArea.children) {
+      if (n <= 0) {
+        break;
+      }
+      if (!card.cardElement.isTapped && this.isSimpleLand(card, color)) {
+        this.applyAction({
+          type: GameActionType.TapLand,
+          spell: card.instanceId,
+        });
+        n--;
+      }
+    }
+  }
+
+  private tapUntappedSimpleLandOfAnyColor(n: number) {
+    for (const card of this.playerLandArea.children) {
+      if (n <= 0) {
+        break;
+      }
+      if (!card.cardElement.isTapped && this.isSimpleLand(card)) {
+        this.applyAction({
+          type: GameActionType.TapLand,
+          spell: card.instanceId,
+        });
+        n--;
+      }
+    }
+  }
+
   public async verifyAction(action: GameAction): Promise<boolean> {
     switch (action.type) {
       case GameActionType.Init: {
@@ -131,13 +192,30 @@ export class Game {
           return false;
         }
         // must be able to pay mana cost
-        if (
-          !allManaColorValues.every(
-            (color) =>
-              (this.playerMana.mana.get(color) || 0) >=
-              (spell.card.mana.get(color) || 0)
-          )
-        ) {
+        const simpleUntappedLandMana = this.getSimpleUntappedLandMana();
+        // colorless mana can only be used to pay colorless cost
+        // any mana can pay a colorless cost
+        let remainingColorlessToPay = 0;
+        let canPay = true;
+        for (const color of allManaColorValues) {
+          if (color === ManaColorValue.Colorless) {
+            remainingColorlessToPay +=
+              (spell.card.mana.get(color) || 0) -
+              ((this.playerMana.mana.get(color) || 0) +
+                (simpleUntappedLandMana.get(color) || 0));
+          } else {
+            const remainingOfColor =
+              (this.playerMana.mana.get(color) || 0) +
+              (simpleUntappedLandMana.get(color) || 0) -
+              (spell.card.mana.get(color) || 0);
+            if (remainingOfColor < 0) {
+              canPay = false;
+            }
+            remainingColorlessToPay -= remainingOfColor;
+          }
+        }
+        canPay = canPay && remainingColorlessToPay <= 0;
+        if (!canPay) {
           console.log("must be able to pay mana cost!");
           return false;
         }
@@ -147,7 +225,7 @@ export class Game {
           this.playerHasPlayedLand
         ) {
           console.log("can only play one land per turn!");
-          return false;
+          // return false; for debugging
         }
         return true;
       }
@@ -158,6 +236,10 @@ export class Game {
         );
         if (!spell) {
           console.log("land must be in land area!");
+          return false;
+        }
+        if (spell.cardElement.isTapped) {
+          console.log("cannot tap an already tapped land");
           return false;
         }
         return true;
@@ -196,13 +278,36 @@ export class Game {
             throw new Error("Card Not Found in Player Hand");
           }
           // pay mana cost
-          allManaColorValues.forEach((color) => {
-            this.playerMana.mana.set(
-              color,
-              (this.playerMana.mana.get(color) || 0) -
-                (spell.card.mana.get(color) || 0)
-            );
-          });
+          for (const color of [...allManaColorValues].reverse()) {
+            if (color !== ManaColorValue.Colorless) {
+              this.tapUntappedSimpleLand(
+                color,
+                (spell.card.mana.get(color) || 0) -
+                  (this.playerMana.mana.get(color) || 0)
+              );
+              this.playerMana.mana.set(
+                color,
+                (this.playerMana.mana.get(color) || 0) -
+                  (spell.card.mana.get(color) || 0)
+              );
+            } else {
+              // colorless mana can only be used to pay colorless cost
+              // any mana can pay a colorless cost
+              let remainingToPay = spell.card.mana.get(color) || 0;
+              for (const color of allManaColorValues) {
+                const amount = Math.min(
+                  remainingToPay,
+                  this.playerMana.mana.get(color) || 0
+                );
+                remainingToPay -= amount;
+                this.playerMana.mana.set(
+                  color,
+                  (this.playerMana.mana.get(color) || 0) - amount
+                );
+              }
+              this.tapUntappedSimpleLandOfAnyColor(remainingToPay);
+            }
+          }
           // parse spell effect
           triggerEffect(this, spell, SpellTrigger.onCast);
           if (spell.card.traitsList.includes(BaseTrait.Land)) {
@@ -224,6 +329,7 @@ export class Game {
           if (!spell) {
             throw new Error("Card Not Found in Player Land Area");
           }
+          spell.cardElement.isTapped = true;
           triggerEffect(this, spell, SpellTrigger.onTap);
           break;
         }

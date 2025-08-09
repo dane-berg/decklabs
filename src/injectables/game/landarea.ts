@@ -28,7 +28,9 @@ export class LandArea extends CanvasElement {
       (group: CardInPlay[], xPos: number) => {
         group.forEach((card: CardInPlay, index: number) => {
           card.update({ x: xPos, y: index * 20, rot: 0, scale: 1 });
-          card.zIndex = ZIndex.CastCard;
+          card.zIndex = card.cardElement.isTapped
+            ? ZIndex.NonInteractive
+            : ZIndex.CastCard;
           card.cardElement.fullArt = false;
         });
       }

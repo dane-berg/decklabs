@@ -1,3 +1,4 @@
+import { findLast } from "../arrayutil";
 import { CanvasElement, RootElement, ZIndex } from "./canvaselement";
 import { Position } from "./renderutil";
 
@@ -92,14 +93,17 @@ export class Canvas {
 
   private static handleMouseMove(pos: Position) {
     this.unDirtyZOrder();
-    let newHoverTarget: CanvasElement | undefined = this.elements.find((e) => {
-      if (!e.zIndex) {
-        throw new Error(
-          "NonInteractive element in CanvasEventHandler.elements"
-        );
+    let newHoverTarget: CanvasElement | undefined = findLast(
+      this.elements,
+      (e) => {
+        if (!e.zIndex) {
+          throw new Error(
+            "NonInteractive element in CanvasEventHandler.elements"
+          );
+        }
+        return e.contains(pos);
       }
-      return e.contains(pos);
-    });
+    );
     DEBUG_MODE && console.log(`newHoverTarget = ${newHoverTarget?.logName()}`);
     if (newHoverTarget !== this.currentHoverTarget) {
       newHoverTarget?.onMouseEnter(pos);

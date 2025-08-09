@@ -27,11 +27,10 @@ const validExpressions: [RegExp, (game: Game, spellLine: string) => void][] = [
   ],
 ];
 
-export function triggerEffect(
-  game: Game,
+export function getTriggerEffect(
   spell: CardInPlay,
   trigger: SpellTrigger
-) {
+): string[] {
   const spellEffect = spell.card.effect
     .split("@")
     .find((spellEffect) => spellEffect.startsWith(trigger));
@@ -41,15 +40,24 @@ export function triggerEffect(
       .splice(1)
       .map((str) => str.trim())
       .filter((str) => !!str);
-    for (const spellLine of spellLines) {
-      const validExpression = validExpressions.find(([reg, _]) =>
-        reg.test(spellLine)
-      );
-      if (validExpression) {
-        validExpression[1](game, spellLine);
-      } else {
-        throw new Error(`Invalid spell line: ${spellLine}`);
-      }
+    return spellLines;
+  }
+  return [];
+}
+
+export function triggerEffect(
+  game: Game,
+  spell: CardInPlay,
+  trigger: SpellTrigger
+) {
+  for (const spellLine of getTriggerEffect(spell, trigger)) {
+    const validExpression = validExpressions.find(([reg, _]) =>
+      reg.test(spellLine)
+    );
+    if (validExpression) {
+      validExpression[1](game, spellLine);
+    } else {
+      throw new Error(`Invalid spell line: ${spellLine}`);
     }
   }
 }

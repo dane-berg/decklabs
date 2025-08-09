@@ -4,12 +4,19 @@ import { Rect, withEvenSpacing } from "../render/renderutil";
 import { CardElement } from "./cardelement";
 import { CardInPlay } from "./cardinplay";
 import { GameActionType } from "./gameaction";
+import { BaseTrait } from "./traits";
 
 export class Hand extends CanvasElement {
   public override children: CardInPlay[] = [];
 
   public update(rect: Rect) {
     this.rd = { ...this.rd, ...rect };
+
+    this.children.sort(
+      (a: CardInPlay, b: CardInPlay) =>
+        +b.card.traitsList.includes(BaseTrait.Land) -
+        +a.card.traitsList.includes(BaseTrait.Land)
+    );
 
     const lastHoveredIndex = CardElement.lastHoveredCard
       ? this.children
