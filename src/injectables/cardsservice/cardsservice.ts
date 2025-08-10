@@ -31,7 +31,7 @@ export class CardsService {
 
   static createCard(data: CardData): Card {
     const id = --this.lastLocalCardId;
-    console.log(`creating new card with id ${id} ...`);
+    Configure.DEBUG_MODE && console.log(`creating new card with id ${id} ...`);
     const newCard = new Card(id, data);
     this.cards.set(id, newCard);
     return newCard;
@@ -56,7 +56,7 @@ export class CardsService {
   }
 
   static updateCard(id: CardId, data: CardData) {
-    console.log(`updating card with id ${id} ...`);
+    Configure.DEBUG_MODE && console.log(`updating card with id ${id} ...`);
     this.getLocalCard(id).update(data);
   }
 
@@ -93,8 +93,8 @@ export class CardsService {
         },
       });
       const cardData = response.data.data;
-      console.log(`Upload successful`);
-      console.log(cardData);
+      Configure.DEBUG_MODE && console.log(`Upload successful`);
+      Configure.DEBUG_MODE && console.log(cardData);
 
       if (cardData.id === undefined) {
         throw new Error(`received id must not be undefined`);

@@ -256,3 +256,48 @@ export function withEvenSpacing<T>(
     update(item, leftX + dx, index);
   });
 }
+
+export function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  rect: Rect,
+  radius: number,
+  fillColor?: string,
+  strokeColor?: string,
+  shadowColor?: string
+) {
+  ctx.save();
+  const r = Math.min(radius, rect.w / 2, rect.h / 2);
+
+  if (shadowColor) {
+    ctx.shadowColor = shadowColor;
+    ctx.shadowBlur = r;
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(rect.x + r, rect.y);
+  ctx.lineTo(rect.x + rect.w - r, rect.y);
+  ctx.quadraticCurveTo(rect.x + rect.w, rect.y, rect.x + rect.w, rect.y + r);
+  ctx.lineTo(rect.x + rect.w, rect.y + rect.h - r);
+  ctx.quadraticCurveTo(
+    rect.x + rect.w,
+    rect.y + rect.h,
+    rect.x + rect.w - r,
+    rect.y + rect.h
+  );
+  ctx.lineTo(rect.x + r, rect.y + rect.h);
+  ctx.quadraticCurveTo(rect.x, rect.y + rect.h, rect.x, rect.y + rect.h - r);
+  ctx.lineTo(rect.x, rect.y + r);
+  ctx.quadraticCurveTo(rect.x, rect.y, rect.x + r, rect.y);
+  ctx.closePath();
+
+  if (fillColor) {
+    ctx.shadowColor = "black";
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+  }
+  if (strokeColor) {
+    ctx.strokeStyle = strokeColor;
+    ctx.stroke();
+  }
+  ctx.restore();
+}

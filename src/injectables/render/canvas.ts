@@ -1,14 +1,13 @@
 import { findLast } from "../arrayutil";
+import { Configure } from "../configure";
 import { CanvasElement, RootElement, ZIndex } from "./canvaselement";
 import { Position } from "./renderutil";
-
-const DEBUG_MODE = true;
 
 export class Canvas {
   public static rootElement?: RootElement;
   private static elements: CanvasElement[] = [];
   private static nonInteractiveElements: CanvasElement[] = [];
-  private static currentHoverTarget?: CanvasElement;
+  public static currentHoverTarget?: CanvasElement;
   private static zOrderIsDirty: boolean = false;
   private static canvas?: HTMLCanvasElement;
 
@@ -104,7 +103,8 @@ export class Canvas {
         return e.contains(pos);
       }
     );
-    DEBUG_MODE && console.log(`newHoverTarget = ${newHoverTarget?.logName()}`);
+    Configure.DEBUG_MODE &&
+      console.log(`newHoverTarget = ${newHoverTarget?.logName()}`);
     if (newHoverTarget !== this.currentHoverTarget) {
       newHoverTarget?.onMouseEnter(pos);
     }
@@ -113,8 +113,12 @@ export class Canvas {
 
   private static handleClick(pos: Position) {
     this.handleMouseMove(pos);
-    if (DEBUG_MODE) {
-      console.log(`clicked at position ${pos.x}, ${pos.y}`);
+    if (Configure.DEBUG_MODE) {
+      console.log(
+        this.currentHoverTarget
+          ? `clicked at position ${pos.x}, ${pos.y} (${this.currentHoverTarget.logName()})`
+          : `clicked at position ${pos.x}, ${pos.y}`
+      );
     }
     this.currentHoverTarget?.onClick(pos);
   }
@@ -149,7 +153,7 @@ export class Canvas {
       ctx.translate((-0.5 * e.rd.w) / e.rd.scale, (-0.5 * e.rd.h) / e.rd.scale);
       // draw the element
       e.draw(ctx);
-      if (DEBUG_MODE) {
+      if (Configure.DEBUG_MODE) {
         ctx.strokeStyle = e.zIndex ? "cyan" : "white";
         ctx.lineWidth = e.zIndex ? 4 : 1;
         ctx.strokeRect(0, 0, e.rd.w, e.rd.h);

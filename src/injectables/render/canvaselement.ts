@@ -13,7 +13,8 @@ export enum ZIndex {
   Background = 1,
   CastCard = 2,
   HandCard = 3,
-  Selection = 4,
+  UI = 4,
+  Selection = 5,
 }
 
 export class CanvasElement {
@@ -100,6 +101,10 @@ export class CanvasElement {
   public setChildren(children: CanvasElement[]) {
     this.children.forEach((c) => this.removeChild(c));
     children.forEach((c) => this.addChild(c));
+  }
+
+  public get isHovered(): boolean {
+    return Canvas.currentHoverTarget === this;
   }
 
   public onMouseEnter(_pos: Position): void | Promise<void> {}

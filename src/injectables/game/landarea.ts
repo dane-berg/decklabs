@@ -27,7 +27,12 @@ export class LandArea extends CanvasElement {
       Configure.CARD_WIDTH * Configure.SPACING_RATIO,
       (group: CardInPlay[], xPos: number) => {
         group.forEach((card: CardInPlay, index: number) => {
-          card.update({ x: xPos, y: index * 20, rot: 0, scale: 1 });
+          card.update({
+            x: xPos,
+            y: Configure.CONDENSED_CARD_HEIGHT / 2 + index * 20,
+            rot: 0,
+            scale: 1,
+          });
           card.zIndex = card.cardElement.isTapped
             ? ZIndex.NonInteractive
             : ZIndex.CastCard;

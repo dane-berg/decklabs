@@ -15,6 +15,7 @@ export class I18n {
     "color-white": "White",
     "dark-mode-string": "Dark mode",
     "decklabs-title": "Decklabs",
+    "end-turn": "End turn",
     "file-upload-error": "There was an error while uploading the file.",
     "file-upload-success": "File uploaded successfully!",
     "full-card": "Full Card",

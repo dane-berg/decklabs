@@ -34,8 +34,8 @@ export class CardInPlay extends CanvasElement {
 
   public get rd(): RenderData {
     const offsetRD = add(this._rd, {
-      x: (-Configure.CARD_WIDTH * this._rd.scale) / 2,
-      y: (-Configure.CARD_HEIGHT * this._rd.scale) / 2,
+      x: (-this._rd.w * this._rd.scale) / 2,
+      y: (-this._rd.h * this._rd.scale) / 2,
       w: 0,
       h: 0,
       rot: 0,

@@ -15,7 +15,8 @@ export class Hand extends CanvasElement {
     this.children.sort(
       (a: CardInPlay, b: CardInPlay) =>
         +b.card.traitsList.includes(BaseTrait.Land) -
-        +a.card.traitsList.includes(BaseTrait.Land)
+          +a.card.traitsList.includes(BaseTrait.Land) ||
+        (b.card.name < a.card.name ? 1 : -1)
     );
 
     const lastHoveredIndex = CardElement.lastHoveredCard

@@ -1,5 +1,6 @@
 // singleton injectable that handles configuration options
 export class Configure {
+  public static readonly DEBUG_MODE = true;
   public static readonly url = "http://localhost:3000/";
   public static readonly CARD_WIDTH = 126;
   public static readonly CARD_WIDTH_PX = `${this.CARD_WIDTH}px`;
@@ -18,6 +19,8 @@ export class Configure {
   public static readonly card_font_str = `${this.card_font_size}px ${this.card_font}`;
   public static readonly card_secondary_font_size = 5;
   public static readonly card_secondary_font_str = `${this.card_secondary_font_size}px ${this.card_font}`;
+  public static readonly ui_font_size = 16;
+  public static readonly ui_font_str = `${this.ui_font_size}px ${this.card_font}`;
   public static readonly max_mana_value = 9;
   public static readonly max_pt_value = 9;
   public static readonly min_pt_value = -9;

@@ -11,23 +11,35 @@ export type InitAction = {
   playerTwoDeck: CardId[];
   playerTwoHand: CardId[];
 };
-
 export type CastAction = BaseGameAction & {
   type: GameActionType.Cast;
   spell: CardInstanceId;
 };
-
 export type TapLandAction = BaseGameAction & {
   type: GameActionType.TapLand;
   spell: CardInstanceId;
+};
+export type TapCardAction = BaseGameAction & {
+  type: GameActionType.TapCard;
+  spell: CardInstanceId;
+};
+export type EndTurnAction = BaseGameAction & {
+  type: GameActionType.EndTurn;
 };
 
 export enum GameActionType {
   Init = "InitAction",
   Cast = "CastAction",
   TapLand = "TapLandAction",
+  TapCard = "TapCardAction",
+  EndTurn = "EndTurnAction",
 }
-export type GameAction = InitAction | CastAction | TapLandAction;
+export type GameAction =
+  | InitAction
+  | CastAction
+  | TapLandAction
+  | TapCardAction
+  | EndTurnAction;
 
 export type BaseGameAction = { type: GameActionType };
 export type CardInstanceId = number;
@@ -47,11 +59,13 @@ export function getCardsFp(
   a: number = 0
 ): FingerprintValue {
   const k = primes[a % primes.length];
-  return cards.reduce(
-    (h: FingerprintValue, card: CardInPlay) =>
-      k * h + (card.instanceId ^ card.card.id),
-    0
-  );
+  return cards.reduce((h: FingerprintValue, card: CardInPlay) => {
+    if (card.cardElement.isTapped) {
+      return k * h - (card.instanceId ^ card.card.id);
+    } else {
+      return k * h + (card.instanceId ^ card.card.id);
+    }
+  }, 0);
 }
 
 export function getManaFp(mana: ManaMap, a: number = 0): FingerprintValue {

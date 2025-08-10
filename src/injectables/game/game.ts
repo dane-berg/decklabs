@@ -177,7 +177,8 @@ export class Game {
     switch (action.type) {
       case GameActionType.Init: {
         if (this.actionStack.length !== 0) {
-          console.log("can only initialize empty games");
+          Configure.DEBUG_MODE &&
+            console.log("can only initialize empty games");
           return false;
         }
         return true;
@@ -188,7 +189,7 @@ export class Game {
           (c) => c.instanceId === action.spell
         );
         if (!spell) {
-          console.log("spell must be in hand!");
+          Configure.DEBUG_MODE && console.log("spell must be in hand!");
           return false;
         }
         // must be able to pay mana cost
@@ -216,7 +217,7 @@ export class Game {
         }
         canPay = canPay && remainingColorlessToPay <= 0;
         if (!canPay) {
-          console.log("must be able to pay mana cost!");
+          Configure.DEBUG_MODE && console.log("must be able to pay mana cost!");
           return false;
         }
         // can only play one land per turn
@@ -224,24 +225,45 @@ export class Game {
           spell.card.traitsList.includes(BaseTrait.Land) &&
           this.playerHasPlayedLand
         ) {
-          console.log("can only play one land per turn!");
-          // return false; for debugging
+          Configure.DEBUG_MODE &&
+            console.log("can only play one land per turn!");
+          if (!Configure.DEBUG_MODE) {
+            return false;
+          }
         }
         return true;
       }
       case GameActionType.TapLand: {
-        // spell must be in hand
         const spell: CardInPlay | undefined = this.playerLandArea.children.find(
           (c) => c.instanceId === action.spell
         );
         if (!spell) {
-          console.log("land must be in land area!");
+          Configure.DEBUG_MODE && console.log("land must be in land area!");
           return false;
         }
         if (spell.cardElement.isTapped) {
-          console.log("cannot tap an already tapped land");
+          Configure.DEBUG_MODE &&
+            console.log("cannot tap an already tapped land");
           return false;
         }
+        return true;
+      }
+      case GameActionType.TapCard: {
+        const spell: CardInPlay | undefined = this.playerPlayArea.children.find(
+          (c) => c.instanceId === action.spell
+        );
+        if (!spell) {
+          Configure.DEBUG_MODE && console.log("card must be in play area!");
+          return false;
+        }
+        if (spell.cardElement.isTapped) {
+          Configure.DEBUG_MODE &&
+            console.log("cannot tap an already tapped card");
+          return false;
+        }
+        return true;
+      }
+      case GameActionType.EndTurn: {
         return true;
       }
       default: {
@@ -252,7 +274,7 @@ export class Game {
 
   // TODO: make unapplyAction (does each item on the stack need to have a list of reversal actions?)
   public async applyAction(action: GameAction): Promise<boolean> {
-    console.log(action);
+    Configure.DEBUG_MODE && console.log(action);
     try {
       switch (action.type) {
         case GameActionType.Init: {
@@ -306,6 +328,17 @@ export class Game {
                 );
               }
               this.tapUntappedSimpleLandOfAnyColor(remainingToPay);
+              for (const color of allManaColorValues) {
+                const amount = Math.min(
+                  remainingToPay,
+                  this.playerMana.mana.get(color) || 0
+                );
+                remainingToPay -= amount;
+                this.playerMana.mana.set(
+                  color,
+                  (this.playerMana.mana.get(color) || 0) - amount
+                );
+              }
             }
           }
           // parse spell effect
@@ -321,7 +354,6 @@ export class Game {
           break;
         }
         case GameActionType.TapLand: {
-          // spell must be in hand
           const spell: CardInPlay | undefined =
             this.playerLandArea.children.find(
               (c) => c.instanceId === action.spell
@@ -331,6 +363,34 @@ export class Game {
           }
           spell.cardElement.isTapped = true;
           triggerEffect(this, spell, SpellTrigger.onTap);
+          break;
+        }
+        case GameActionType.TapCard: {
+          const spell: CardInPlay | undefined =
+            this.playerPlayArea.children.find(
+              (c) => c.instanceId === action.spell
+            );
+          if (!spell) {
+            throw new Error("Card Not Found in Player Play Area");
+          }
+          spell.cardElement.isTapped = true;
+          triggerEffect(this, spell, SpellTrigger.onTap);
+          break;
+        }
+        case GameActionType.EndTurn: {
+          // TODO: technically this should happen at the start of the turn
+          this.playerHasPlayedLand = false;
+          for (const landCard of this.playerLandArea.children) {
+            landCard.cardElement.isTapped = false;
+          }
+          for (const permanent of this.playerPlayArea.children) {
+            permanent.cardElement.isTapped = false;
+          }
+          const card = this.playerDeck.pop();
+          if (card) {
+            this.playerHand.addChild(card);
+          }
+          // TODO: else lose the game
           break;
         }
         default: {
@@ -349,7 +409,8 @@ export class Game {
     ) {
       throw new Error("Every action must modify the game fingerprint");
     }
-    console.log(this.actionStack.map((a) => `${a.type} ${a.fp}`));
+    Configure.DEBUG_MODE &&
+      console.log(this.actionStack.map((a) => `${a.type} ${a.fp}`));
     return true;
   }
 

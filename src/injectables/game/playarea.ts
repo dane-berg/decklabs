@@ -1,7 +1,8 @@
 import { CardInPlay } from "./cardinplay";
 import { Configure } from "../configure";
-import { CanvasElement } from "../render/canvaselement";
+import { CanvasElement, ZIndex } from "../render/canvaselement";
 import { Rect } from "../render/renderutil";
+import { GameActionType } from "./gameaction";
 
 const SPACING = 1.1;
 
@@ -39,6 +40,14 @@ export class PlayArea extends CanvasElement {
         y: (Configure.CARD_HEIGHT * SPACING) / 2,
       });
       card.cardElement.fullArt = false;
+      card.zIndex = ZIndex.CastCard;
+    });
+  }
+
+  public onCardClick(card: CardInPlay) {
+    card.game.applyActionIfVerified({
+      type: GameActionType.TapCard,
+      spell: card.instanceId,
     });
   }
 }
