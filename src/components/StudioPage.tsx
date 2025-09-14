@@ -2,8 +2,6 @@ import { I18n } from "../injectables/i18n";
 import { useEffect, useState } from "react";
 import InputFileUpload from "./common/InputFileUpload";
 import { Card, Mana } from "../injectables/cardsservice/card";
-import CanvasComponent from "./common/CanvasComponent";
-import { CardElement } from "../injectables/game/cardelement";
 import { Configure } from "../injectables/configure";
 import {
   Button,

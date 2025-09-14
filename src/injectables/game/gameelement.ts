@@ -1,59 +1,33 @@
-import { ButtonElement } from "../canvaselements/button.element";
 import { Configure } from "../configure";
-import { I18n } from "../i18n";
-import { RootElement, ZIndex } from "../render/canvaselement";
+import { RootElement } from "../render/canvaselement";
 import { Rect } from "../render/renderutil";
 import { Game } from "./game";
-import { GameActionType } from "./gameaction";
+import { PlayerMat } from "./playermat";
 
 export class GameElement extends RootElement {
-  private readonly endTurnButton = new ButtonElement(
-    I18n.get("end-turn"),
-    async () => {
-      await this.game.applyActionIfVerified({ type: GameActionType.EndTurn });
-    }
-  );
+  private readonly playerOneMat: PlayerMat | undefined;
+  private readonly playerTwoMat: PlayerMat | undefined;
 
   constructor(public game: Game) {
     super();
-    this.addChild(this.endTurnButton, ZIndex.UI);
-    this.addChild(game.playerPlayArea, undefined, false);
-    this.addChild(game.playerLandArea, undefined, false);
-    this.addChild(game.playerMana, undefined, false);
-    this.addChild(game.playerHand, undefined, false);
+    this.playerOneMat = new PlayerMat(this.game, 1);
+    this.addChild(this.playerOneMat, undefined, false);
+    this.playerTwoMat = new PlayerMat(this.game, 2);
+    this.addChild(this.playerTwoMat, undefined, false);
   }
 
   public override update(rect: Rect) {
     this.rd = { ...this.rd, ...rect };
 
-    this.endTurnButton.update({
-      x: this.rd.w - 220,
-      y: this.rd.h - 210,
-      w: 120,
-      h: 35,
-    });
-    this.game.playerPlayArea.update({
+    this.playerOneMat?.update({
       x: 0,
       y: this.rd.h / 2,
       w: this.rd.w,
-      h: this.rd.h / 2 - Configure.CARD_HEIGHT,
+      h: this.rd.h / 2,
     });
-    // TODO: shrink after implementing condensed card elements
-    this.game.playerLandArea.update({
-      x: 0,
-      y: (this.rd.h * 2) / 3,
-      w: this.rd.w / 2,
-      h: Configure.CARD_HEIGHT,
-    });
-    this.game.playerMana.update({ x: 0, y: this.rd.h - 50, w: 300, h: 300 });
-    this.game.playerHand.update({
-      x: 0,
-      y: this.rd.h - Configure.CARD_HEIGHT,
-      w: this.rd.w,
-      h: Configure.CARD_HEIGHT,
-    });
+    this.playerTwoMat?.update({ x: 0, y: 0, w: this.rd.w, h: this.rd.h / 2 });
 
-    if (!this.game.initialized) {
+    if (!this.game?.initialized) {
       Configure.DEBUG_MODE &&
         console.log("game has not finished initializing!");
       return;

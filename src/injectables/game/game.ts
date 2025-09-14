@@ -1,9 +1,7 @@
 import { Configure } from "../configure";
 import { CardInPlay } from "./cardinplay";
 import { DropZone } from "./dropzone";
-import { PlayArea } from "./playarea";
 import { CardsService } from "../cardsservice/cardsservice";
-import { Hand } from "./hand";
 import {
   GameAction,
   FingerprintedGameAction,
@@ -11,32 +9,28 @@ import {
   InitAction,
   shuffleInPlace,
   GameActionType,
-  getCardsFp,
-  getManaFp,
 } from "./gameaction";
 import { Card, CardId, ManaMap } from "../cardsservice/card";
-import { LandArea } from "./landarea";
 import { allManaColorValues, ManaColorValue } from "../cardsservice/manacolor";
 import { BaseTrait } from "./traits";
-import { ManaDisplay } from "./manadisplay";
 import {
   getTriggerEffect,
   SpellTrigger,
   triggerEffect,
 } from "./magicinterpreter";
 import { arrayEquals } from "../arrayutil";
+import { Agent } from "./agent";
+import { PlayerData } from "./playerdata";
 
 export class Game {
-  private playerDeck: CardInPlay[] = [];
-  public playerHand: Hand = new Hand();
-  public playerPlayArea: PlayArea = new PlayArea();
-  public playerLandArea: LandArea = new LandArea();
-  public playerMana: ManaDisplay = new ManaDisplay();
-  public playerHasPlayedLand: boolean = false;
   private initPromise: Promise<boolean>;
   public initialized: boolean = false;
   private actionStack: FingerprintedGameAction[] = [];
   private cards: Card[] = [];
+  public playerOne = new PlayerData();
+  public playerTwo = new PlayerData();
+  public activePlayer: PlayerData = this.playerOne;
+  private opponent = new Agent(this);
 
   constructor() {
     this.initPromise = this.init().then((success) => {
@@ -127,9 +121,9 @@ export class Game {
   /**
    * @returns A map of the mana that can be obtained by tapping simple lands
    */
-  private getSimpleUntappedLandMana(): ManaMap {
+  private getSimpleUntappedLandMana(player: PlayerData): ManaMap {
     const manaMap = new Map<string, number>();
-    this.playerLandArea.children
+    player.landArea.children
       .filter(
         (card: CardInPlay) =>
           !card.cardElement.isTapped && this.isSimpleLand(card)
@@ -143,8 +137,12 @@ export class Game {
     return manaMap;
   }
 
-  private tapUntappedSimpleLand(color: ManaColorValue, n: number) {
-    for (const card of this.playerLandArea.children) {
+  private tapUntappedSimpleLand(
+    player: PlayerData,
+    color: ManaColorValue,
+    n: number
+  ) {
+    for (const card of player.landArea.children) {
       if (n <= 0) {
         break;
       }
@@ -158,8 +156,8 @@ export class Game {
     }
   }
 
-  private tapUntappedSimpleLandOfAnyColor(n: number) {
-    for (const card of this.playerLandArea.children) {
+  private tapUntappedSimpleLandOfAnyColor(player: PlayerData, n: number) {
+    for (const card of player.landArea.children) {
       if (n <= 0) {
         break;
       }
@@ -185,15 +183,18 @@ export class Game {
       }
       case GameActionType.Cast: {
         // spell must be in hand
-        const spell: CardInPlay | undefined = this.playerHand.children.find(
-          (c) => c.instanceId === action.spell
-        );
+        const spell: CardInPlay | undefined =
+          this.activePlayer.hand.children.find(
+            (c) => c.instanceId === action.spell
+          );
         if (!spell) {
           Configure.DEBUG_MODE && console.log("spell must be in hand!");
           return false;
         }
         // must be able to pay mana cost
-        const simpleUntappedLandMana = this.getSimpleUntappedLandMana();
+        const simpleUntappedLandMana = this.getSimpleUntappedLandMana(
+          this.activePlayer
+        );
         // colorless mana can only be used to pay colorless cost
         // any mana can pay a colorless cost
         let remainingColorlessToPay = 0;
@@ -202,11 +203,11 @@ export class Game {
           if (color === ManaColorValue.Colorless) {
             remainingColorlessToPay +=
               (spell.card.mana.get(color) || 0) -
-              ((this.playerMana.mana.get(color) || 0) +
+              ((this.activePlayer.mana.mana.get(color) || 0) +
                 (simpleUntappedLandMana.get(color) || 0));
           } else {
             const remainingOfColor =
-              (this.playerMana.mana.get(color) || 0) +
+              (this.activePlayer.mana.mana.get(color) || 0) +
               (simpleUntappedLandMana.get(color) || 0) -
               (spell.card.mana.get(color) || 0);
             if (remainingOfColor < 0) {
@@ -223,7 +224,7 @@ export class Game {
         // can only play one land per turn
         if (
           spell.card.traitsList.includes(BaseTrait.Land) &&
-          this.playerHasPlayedLand
+          this.activePlayer.hasPlayedLand
         ) {
           Configure.DEBUG_MODE &&
             console.log("can only play one land per turn!");
@@ -234,9 +235,10 @@ export class Game {
         return true;
       }
       case GameActionType.TapLand: {
-        const spell: CardInPlay | undefined = this.playerLandArea.children.find(
-          (c) => c.instanceId === action.spell
-        );
+        const spell: CardInPlay | undefined =
+          this.activePlayer.landArea.children.find(
+            (c) => c.instanceId === action.spell
+          );
         if (!spell) {
           Configure.DEBUG_MODE && console.log("land must be in land area!");
           return false;
@@ -249,9 +251,10 @@ export class Game {
         return true;
       }
       case GameActionType.TapCard: {
-        const spell: CardInPlay | undefined = this.playerPlayArea.children.find(
-          (c) => c.instanceId === action.spell
-        );
+        const spell: CardInPlay | undefined =
+          this.activePlayer.playArea.children.find(
+            (c) => c.instanceId === action.spell
+          );
         if (!spell) {
           Configure.DEBUG_MODE && console.log("card must be in play area!");
           return false;
@@ -264,7 +267,10 @@ export class Game {
         return true;
       }
       case GameActionType.EndTurn: {
-        return true;
+        return (
+          (action.playerIndex === 1 && this.activePlayer === this.playerOne) ||
+          (action.playerIndex === 2 && this.activePlayer === this.playerTwo)
+        );
       }
       default: {
         throw new Error(`Unrecognized GameAction ${action.type}`);
@@ -272,30 +278,51 @@ export class Game {
     }
   }
 
-  // TODO: make unapplyAction (does each item on the stack need to have a list of reversal actions?)
   public async applyAction(action: GameAction): Promise<boolean> {
+    const result = await this._applyAction(action);
+    this.opponent.triggerNextAction(result); // do not await this promise
+    return result;
+  }
+
+  // TODO: make unapplyAction (does each item on the stack need to have a list of reversal actions?)
+  public async _applyAction(action: GameAction): Promise<boolean> {
     Configure.DEBUG_MODE && console.log(action);
     try {
       switch (action.type) {
         case GameActionType.Init: {
-          const newPlayerDeck = await Promise.all(
+          // Player One
+          this.playerOne.deck = await Promise.all(
             action.playerOneDeck.map(async (cardId: CardId) => {
               return new CardInPlay(this, this.findCard(cardId));
             })
           );
-          const newPlayerHand = await Promise.all(
-            action.playerOneHand.map(async (cardId: CardId) => {
+          this.playerOne.hand.setChildren(
+            await Promise.all(
+              action.playerOneHand.map(async (cardId: CardId) => {
+                return new CardInPlay(this, this.findCard(cardId));
+              })
+            )
+          );
+          // Player Two
+          this.playerTwo.deck = await Promise.all(
+            action.playerTwoDeck.map(async (cardId: CardId) => {
               return new CardInPlay(this, this.findCard(cardId));
             })
           );
-          this.playerDeck = newPlayerDeck;
-          this.playerHand.setChildren(newPlayerHand);
+          this.playerTwo.hand.setChildren(
+            await Promise.all(
+              action.playerTwoHand.map(async (cardId: CardId) => {
+                return new CardInPlay(this, this.findCard(cardId));
+              })
+            )
+          );
           break;
         }
         case GameActionType.Cast: {
-          const spell: CardInPlay | undefined = this.playerHand.children.find(
-            (c) => c.instanceId === action.spell
-          );
+          const spell: CardInPlay | undefined =
+            this.activePlayer.hand.children.find(
+              (c) => c.instanceId === action.spell
+            );
           if (!spell) {
             throw new Error("Card Not Found in Player Hand");
           }
@@ -303,13 +330,14 @@ export class Game {
           for (const color of [...allManaColorValues].reverse()) {
             if (color !== ManaColorValue.Colorless) {
               this.tapUntappedSimpleLand(
+                this.activePlayer,
                 color,
                 (spell.card.mana.get(color) || 0) -
-                  (this.playerMana.mana.get(color) || 0)
+                  (this.activePlayer.mana.mana.get(color) || 0)
               );
-              this.playerMana.mana.set(
+              this.activePlayer.mana.mana.set(
                 color,
-                (this.playerMana.mana.get(color) || 0) -
+                (this.activePlayer.mana.mana.get(color) || 0) -
                   (spell.card.mana.get(color) || 0)
               );
             } else {
@@ -319,24 +347,27 @@ export class Game {
               for (const color of allManaColorValues) {
                 const amount = Math.min(
                   remainingToPay,
-                  this.playerMana.mana.get(color) || 0
+                  this.activePlayer.mana.mana.get(color) || 0
                 );
                 remainingToPay -= amount;
-                this.playerMana.mana.set(
+                this.activePlayer.mana.mana.set(
                   color,
-                  (this.playerMana.mana.get(color) || 0) - amount
+                  (this.activePlayer.mana.mana.get(color) || 0) - amount
                 );
               }
-              this.tapUntappedSimpleLandOfAnyColor(remainingToPay);
+              this.tapUntappedSimpleLandOfAnyColor(
+                this.activePlayer,
+                remainingToPay
+              );
               for (const color of allManaColorValues) {
                 const amount = Math.min(
                   remainingToPay,
-                  this.playerMana.mana.get(color) || 0
+                  this.activePlayer.mana.mana.get(color) || 0
                 );
                 remainingToPay -= amount;
-                this.playerMana.mana.set(
+                this.activePlayer.mana.mana.set(
                   color,
-                  (this.playerMana.mana.get(color) || 0) - amount
+                  (this.activePlayer.mana.mana.get(color) || 0) - amount
                 );
               }
             }
@@ -344,18 +375,18 @@ export class Game {
           // parse spell effect
           triggerEffect(this, spell, SpellTrigger.onCast);
           if (spell.card.traitsList.includes(BaseTrait.Land)) {
-            this.playerLandArea.addChild(spell);
-            this.playerHasPlayedLand = true;
+            this.activePlayer.landArea.addChild(spell);
+            this.activePlayer.hasPlayedLand = true;
           } else if (spell.card.traitsList.includes(BaseTrait.Creature)) {
-            this.playerPlayArea.addChild(spell);
+            this.activePlayer.playArea.addChild(spell);
           } else {
-            this.playerHand.removeChild(spell); // TODO: move to discard
+            this.activePlayer.hand.removeChild(spell); // TODO: move to discard
           }
           break;
         }
         case GameActionType.TapLand: {
           const spell: CardInPlay | undefined =
-            this.playerLandArea.children.find(
+            this.activePlayer.landArea.children.find(
               (c) => c.instanceId === action.spell
             );
           if (!spell) {
@@ -367,7 +398,7 @@ export class Game {
         }
         case GameActionType.TapCard: {
           const spell: CardInPlay | undefined =
-            this.playerPlayArea.children.find(
+            this.activePlayer.playArea.children.find(
               (c) => c.instanceId === action.spell
             );
           if (!spell) {
@@ -378,19 +409,23 @@ export class Game {
           break;
         }
         case GameActionType.EndTurn: {
-          // TODO: technically this should happen at the start of the turn
-          this.playerHasPlayedLand = false;
-          for (const landCard of this.playerLandArea.children) {
+          if (action.playerIndex === 1) {
+            this.activePlayer = this.playerTwo;
+          } else if (action.playerIndex === 2) {
+            this.activePlayer = this.playerOne;
+          }
+          this.activePlayer.hasPlayedLand = false;
+          for (const landCard of this.activePlayer.landArea.children) {
             landCard.cardElement.isTapped = false;
           }
-          for (const permanent of this.playerPlayArea.children) {
+          for (const permanent of this.activePlayer.playArea.children) {
             permanent.cardElement.isTapped = false;
           }
-          const card = this.playerDeck.pop();
+          const card = this.activePlayer.deck.pop();
           if (card) {
-            this.playerHand.addChild(card);
+            this.activePlayer.hand.addChild(card);
           }
-          // TODO: else lose the game
+          // TODO: if you are out of cards, lose the game
           break;
         }
         default: {
@@ -422,12 +457,8 @@ export class Game {
   }
 
   private getFingerprint(): FingerprintValue {
-    const deckFp = getCardsFp(this.playerDeck, 1);
-    const handFp = getCardsFp(this.playerHand.children, 2);
-    const landAreaFp = getCardsFp(this.playerLandArea.children, 3);
-    const playAreaFp = getCardsFp(this.playerPlayArea.children, 4);
-    const manaFp = getManaFp(this.playerMana.mana, 5);
-
-    return deckFp ^ handFp ^ landAreaFp ^ playAreaFp ^ manaFp;
+    return (
+      this.playerOne.getFingerprint() + 2 * this.playerTwo.getFingerprint()
+    );
   }
 }

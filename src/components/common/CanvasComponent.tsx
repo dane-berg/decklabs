@@ -6,7 +6,7 @@ interface Inputs {
   style?: any;
   aspectRatio?: number;
   backgroundImg?: string;
-  rootElement?: RootElement;
+  rootElement: RootElement;
 }
 
 const CanvasComponent = ({

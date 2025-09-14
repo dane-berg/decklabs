@@ -25,6 +25,7 @@ export type TapCardAction = BaseGameAction & {
 };
 export type EndTurnAction = BaseGameAction & {
   type: GameActionType.EndTurn;
+  playerIndex: 1 | 2;
 };
 
 export enum GameActionType {
